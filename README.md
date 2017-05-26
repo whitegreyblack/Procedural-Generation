@@ -1,9 +1,14 @@
-## Welcome to GitHub Pages
+## Welcome Stranger
+This repo will hold the various algorithms that I plan on implementing in python. Eventually I hope to develop my own custom algorithm that builds off these methods for use in an application. Until then I will be updating each section as I complete them
 
-You can use the [editor on GitHub](https://github.com/whitegreyblack/WorldGeneration/edit/master/README.md) to maintain and preview the content for your website in Markdown files.
+## Updates
+- 5/26/17 : Repo Creation
 
-Whenever you commit to this repository, GitHub Pages will run [Jekyll](https://jekyllrb.com/) to rebuild the pages in your site, from the content in your Markdown files.
-
+### Midpoint Displacement Algorithm
+### Diamon Square Algorithm
+### Drunkard's Walk Algorithm
+### Perlin Noise
+### Brownian Noise
 ### Markdown
 
 Markdown is a lightweight and easy-to-use syntax for styling your writing. It includes conventions for
@@ -11,7 +16,6 @@ Markdown is a lightweight and easy-to-use syntax for styling your writing. It in
 ```markdown
 Syntax highlighted code block
 
-# Header 1
 ## Header 2
 ### Header 3
 
