@@ -3,6 +3,7 @@ import math
 import color
 import copy
 import random
+import threading
 
 pvar = "{}: {}"
 
@@ -22,7 +23,7 @@ def smooth(world, maxa):
     newmaxa = 0
     newworld = copy.deepcopy(world)
     print(pvar.format('incoming maxa', maxa))
-    for k in range(2):
+    for k in range(1):
         for i in range(len(world)):
             for j in range(len(world[0])):
                 try:

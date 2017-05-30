@@ -9,13 +9,6 @@ import randomfill
 56330 100 80
 """
 
-pvar = "{}: {}"
-
-''' initialize '''
-WIDTH, HEIGHT = 240, 90
-tdl.setFont('terminal8x12_gs_ro.png')
-console = tdl.init(WIDTH, HEIGHT, 'heightmap')
-
 ''' map functions '''
 def drunkards(x, y, l, s=None): 
     """ Returns map filled with drunkards height algo """

@@ -14,6 +14,7 @@ for i in range(WIDTH+1):
     for j in range(HEIGHT+1):
         val = mpd.map[i][j]
         console.draw_char(i, j, '#', (val, val, val))
+        
 tdl.flush()
 tdl.event.keyWait()
 del console

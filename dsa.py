@@ -2,7 +2,7 @@ import random
 import pprint
 import numpy
 
-class MPD:
+class DSA:
     def __init__(self, width, height, roughness):
         # 2D list initialized using row major
         self.width = width
