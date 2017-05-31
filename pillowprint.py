@@ -1,20 +1,12 @@
 from PIL import Image, ImageDraw
-import drunkards
-import mpd
-import dsa
+import diamondsquareflat
 import random
-import randomfill
-import multipleheight
-from noise import pnoise2
-from opensimplex import OpenSimplex
-import diamondsquarewrapped
 import pprint
 import numpy
 
-WIDTH, HEIGHT = 800, 800
-
-img = Image.new('RGB', (WIDTH, HEIGHT))
-ids = ImageDraw.Draw(img)
+WIDTH, HEIGHT = 64, 64
+SIZE = 64
+# img = Image.new('RGB', (WIDTH+1, HEIGHT+1))
 
 # drunk = drunkards.Map(HEIGHT, WIDTH, .55)
 # for i in range(len(drunk.world[0])):
@@ -67,19 +59,25 @@ ids = ImageDraw.Draw(img)
 #         if terrain[i][j] > maxa:
 #             maxa = terrain[i][j]
 # print(mini, maxa)
-# def color(val):
-#     if 245 <= val:
-#         return (250, 250, 250)
-#     if 200 <= val < 245:
-#         return (val/2, val/2, val/2)
-#     elif 150 <= val < 200:
-#         return (val/2, val, val/3)
-#     elif 110 <= val < 150:
-#         return (val, val, val/2)
-#     elif 100 <= val < 110:
-#         return (val, val, val)
-#     else:
-#         return (0, 5, val*5//3)
+def color(val): 
+    if 215 <= val: # mountains
+        return (250, 250, 250)
+    elif 200 <= val < 215:
+        return (200, 200, 200)
+    elif 175 <= val < 200: # green
+        return (150, 150, 150)
+    elif 150 <= val < 175:
+        return (100/2, 100, 100/3)
+    elif 125 <= val < 150:
+        return (175/2, 175, 175/3)
+    elif 105 <= val < 125:
+        return (200/2, 200, 200/3)
+    elif 100 <= val < 105:
+        return (250, 230, 200)
+    elif 50 <= val < 100: # water
+        return (0, 110*5//3, 110*5//3) 
+    else:
+        return (0, 100*4//3, 100*4//3)
 
 # def norm(x, mini, maxa):
 #     return ((x-mini)/(maxa-mini))*250
@@ -91,15 +89,22 @@ ids = ImageDraw.Draw(img)
 #         val = color(terrain[j][i])
 #         ids.point([i, j, i+1, j+1], val)
 
-# dsw = diamondsquarewrapped.DSW(WIDTH, HEIGHT, .55)
-# dsw.normalizeAll()
-# dsw.colorize()
-
-# pprint.pprint(numpy.matrix(dsw.map))
-
-# for j in range(HEIGHT):
-#     for i in range(WIDTH):
-#         val = dsw.map[i][j]
-#         ids.point([i, j, i+1, j+1], (val,val, val))
-
-img.save('map_{}_{}.png'.format(WIDTH, HEIGHT))
+img = Image.new('RGB', (SIZE*2, SIZE))
+ids = ImageDraw.Draw(img)
+SEED = random.randint(0, 999)
+print(SEED)
+OFFSET = 2.5
+POWER = -.3
+dsw1 = diamondsquareflat.DS(SIZE, 255, seed=SEED, offset=OFFSET, power=POWER)
+dsw2 = diamondsquareflat.DS(SIZE, 255, seed=SEED, offset=OFFSET, power=POWER)
+dsw1.initialize(1)
+dsw2.initialize(1, b=dsw1.map[0][SIZE-1], c=dsw1.map[SIZE-1][SIZE-1])
+for j in range(SIZE):
+    for i in range(SIZE):
+        val = color(dsw1.map[i][j])
+        ids.point([i, j, i+1, j+1], val)
+for j in range(SIZE):
+    for i in range(SIZE):
+        val = color(dsw2.map[i][j])
+        ids.point([SIZE+i, j, SIZE+i+1, j+1], val)
+img.save('map3B_{}_{}_{}_{}_{}.png'.format(dsw1.seed, SIZE, SIZE, OFFSET, POWER))
