@@ -13,6 +13,15 @@ steps = {
     7: [1,1],
 }
 
+class Point:
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+        self.heat = 0
+        self.mask = 0
+        self.height = 0
+        self.moisture = 0
+
 class Tile:
     def __init__(self, x, y, symbol=None):
         self.x = x

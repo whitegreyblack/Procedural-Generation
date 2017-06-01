@@ -1,7 +1,8 @@
 import random
 
 class DS:
-    def __init__(self, size=64, maxa=255, seed=random.randint(0,9999), offset=2.0, power=-0.75):
+    """ Returns a list of lists of size (2^n)+1 of values ranging from 0-255 """
+    def __init__(self, size=65, maxa=255, seed=random.randint(0,9999), offset=2.0, power=-0.75):
         random.seed(seed)
         self.seed = seed
         self.size = size
@@ -9,14 +10,14 @@ class DS:
         self.center = size / 2
         self.offset = offset
         self.power = power
+        self.map = [[0 for j in range(self.size)] for i in range(self.size)]
 
     def initialize(self, n, a=None, b=None, c=None, d=None):
         # a b
         # d c
         def setpoint(x, y, v=None): 
-            self.map[x][y] = self.value if not v else v
+            self.sset(x, y, random.randint(0, self.value*2)) if not v else self.sset(x, y, v)
         self.num = n
-        self.map = [[0 for j in range(self.size)] for i in range(self.size)]
         s = self.size-1 # set to list coordinates        
         setpoint(0, 0, a)
         setpoint(0, s, b)
@@ -35,7 +36,26 @@ class DS:
 
     def sset(self, a, b, c): 
         self.map[a][b] = c if self._get(a,b) is 0 else self._get(a, b)
-
+    def tget(self):
+        values = []
+        for i in range(self.size):
+            for j in range(self.size):
+                if j == 0:
+                    values.append(self._get(i,j))
+        return values
+    def lget(self):
+        return self.map[0]
+    def rget(self):
+        return self.map[self.size-1]
+    def tset(self, l):
+        for i in range(self.size):
+            for j in range(self.size):
+                if j == 0:
+                    self.map[i][j] = l[i]
+    def lset(self, l):
+        self.map[0] = l
+    def rset(self, l):
+        self.map[self.size-1] = l
     def _add(self, l, x, y):
         l.extend([self._get(x,y)]*self.num)
         return l
@@ -59,12 +79,11 @@ class DS:
                     except:
                         pass
         return self._tot([self._tot(neighbors), self._get(x, y)])
-    
+        #return self._tot(neighbors)
     def smooth(self):
-        for i in range(self.size):
-            for j in range(self.size):
+        for i in range(1, self.size):
+            for j in range(1, self.size):
                 self._set(i, j, self._smooth(i, j))
-
     def _sum(self, x, y, l ,t, r, b, v):
         if not v:
             return self._tot([self._get(l, t), self._get(r, t), self._get(l, b), self._get(r, b)])

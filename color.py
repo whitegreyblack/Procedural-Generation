@@ -1,16 +1,94 @@
-WHITE = (250,250,250)
+# COLOR FUNCTIONS
+def lerp(x, y, t):
+    return int(round(x + t * (y-x)))
+
+def norm(x, mini, maxa):
+    return (x-mini)/(maxa-mini)
+
+def plot(x, mini, maxa, tot):
+    return norm(x, mini, maxa) * tot
+
+def hval(x):
+    return int(round(x*255))
+
+def hcolor(x):
+    if hval(.8) <= x < hval(1):
+        return HEIGHT_SNOW
+    elif hval(.6) <= x < hval(.8):
+        return HEIGHT_ROCK
+    elif hval(.4) <= x < hval(.6):
+        return HEIGHT_FOREST
+    elif hval(.3) <= x < hval(.4):
+        return HEIGHT_GRASS
+    elif hval(.2) <= x < hval(.3):
+        return HEIGHT_SAND
+    elif hval(.1) <= x < hval(.2):
+        return HEIGHT_SHALLOW
+    else:
+        return HEIGHT_DEEP
+
+RED = (250, 0, 0)
+BLUE = (0,0,250)
 BLACK = (0,0,0)
+WHITE = (250,250,250)
 LGRAY = (200,200,200)
 MGRAY = (150,150,150)
 DGRAY = (100,100,100)
 HGRAY = (50,50,50)
-RED = (250, 0, 0)
-BLUE = (0,0,250)
-LGREEN = (100, 250, 100)
 GREEN = (0, 200, 0)
+LGREEN = (100, 250, 100)
 DGREEN = (10, 100, 10)
 YELLOW = (200, 200, 50)
 DYELLOW = (150, 150, 25)
+
+# HEIGHT COLORING
+HEIGHT_DEEP = (0, 0, 128)
+HEIGHT_ROCK = (128, 128, 128)
+HEIGHT_SAND = (240, 240, 64)
+HEIGHT_SNOW = (255, 255, 255)
+HEIGHT_GRASS = (50, 220, 20)
+HEIGHT_FOREST = (16, 160, 0)
+HEIGHT_SHALLOW = (25, 25, 150)
+
+
+# BIOME COLORING
+BIOME_ICE = (255, 255, 255)
+BIOME_BOREAL = (95, 115, 62)
+BIOME_DESERT = (238, 218, 130)
+BIOME_TUNDRA = (96, 131, 112)
+BIOME_SAVANNA = (177, 209, 110)
+BIOME_TROPICS = (66, 123, 25)
+BIOME_SEASONAL = (73, 100, 35)
+BIOME_WOODLAND = (139, 175, 90)
+BIOME_GRASSLAND = (164,225, 99)
+BIOME_TEMPERATE = (29, 73, 40)
+
+# HEAT MAP COLORING
+HEAT_COLDEST = (0, 255, 255)
+HEAT_COLDER = (170, 255, 255)
+HEAT_COLD = (0, 229, 133)
+HEAT_WARM = (255, 255, 100)
+HEAT_WARMER = (255, 100, 0)
+HEAT_WARMEST = (241, 12, 0)
+
+# MOISTURE MAP COLORING
+MOISTURE_DRYEST = (255, 139, 17)
+MOISTURE_DRYER = (245, 245, 23)
+MOISTURE_DRY = (80, 255, 0)
+MOISTURE_WET = (85, 255, 255)
+MOISTURE_WETTER = (20, 70, 255)
+MOISTURE_WETTEST = (0,0, 100)
+
+# MOISTURE x HEAT MAPPING
+BIOMES = {
+    0: { 0: BIOME_ICE, 1: BIOME_TUNDRA, 2: BIOME_GRASSLAND, 3: BIOME_DESERT, 4: BIOME_DESERT, 5: BIOME_DESERT },
+    1: { 0: BIOME_ICE, 1: BIOME_TUNDRA, 2: BIOME_GRASSLAND, 3: BIOME_DESERT, 4: BIOME_DESERT, 5: BIOME_DESERT },
+    2: { 0: BIOME_ICE, 1: BIOME_TUNDRA, 2: BIOME_WOODLAND, 3: BIOME_WOODLAND, 4: BIOME_SAVANNA, 5: BIOME_SAVANNA },
+    3: { 0: BIOME_ICE, 1: BIOME_TUNDRA, 2: BIOME_BOREAL, 3: BIOME_WOODLAND, 4: BIOME_SAVANNA, 5: BIOME_SAVANNA },
+    4: { 0: BIOME_ICE, 1: BIOME_TUNDRA, 2: BIOME_BOREAL, 3: BIOME_SEASONAL, 4: BIOME_TROPICS, 5: BIOME_TROPICS },
+    5: { 0: BIOME_ICE, 1: BIOME_TUNDRA, 2: BIOME_BOREAL, 3: BIOME_TEMPERATE, 4: BIOME_TROPICS, 5: BIOME_TROPICS },
+}
+
 colors = [
 (0,0,0),
 (1,0,103),

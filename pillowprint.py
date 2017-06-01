@@ -1,72 +1,26 @@
 from PIL import Image, ImageDraw
 import diamondsquareflat
+import heatmap
 import random
 import pprint
+import color
 import numpy
 
 WIDTH, HEIGHT = 64, 64
-SIZE = 64
-# img = Image.new('RGB', (WIDTH+1, HEIGHT+1))
+SIZE = 17
 
-# drunk = drunkards.Map(HEIGHT, WIDTH, .55)
-# for i in range(len(drunk.world[0])):
-#     for j in range(len(drunk.world)):
-#         val = drunk.world[j][i]
-#         ids.point([i,j,i+1,j+1], val)
+def value(x, y):
+    return int(round(x*y))
 
-# mpd = mpd.MPD(WIDTH, HEIGHT, .5)
-# mpd.colorize()
-# for i in range(len(mpd.map[0])):
-#     for j in range(len(mpd.map)):
-#         val = mpd.map[j][i]
-#         ids.point([j,i,j+1,i+1], val)
-
-# dsa = dsa.DSA(WIDTH, HEIGHT, .55)
-# dsa.colorize()
-# for i in range(len(dsa.map[0])):
-#     for j in range(len(dsa.map)):
-#         val = dsa.map[j][i]
-#         ids.point([j,i,j+1,i+1], val)
-
-# mh, maxa = multipleheight.drunkards(WIDTH, HEIGHT, .55, 5)
-# for i in range(len(mh[0])):
-#     for j in range(len(mh)):
-#         val = int((mh[j][i]/float(maxa[0]))*255)
-#         # val = mh[j][i]
-#         ids.point([i,j,i+1,j+1], (val, val, val))
-
-# rf, maxa = randomfill.randomfill(HEIGHT, WIDTH, .55)
-# rf, maxa = randomfill.smooth(rf, maxa)
-# rf, maxa = randomfill.smooth(rf, maxa)
-# rf, maxa = randomfill.smooth(rf, maxa)
-# rf, maxa = randomfill.smooth(rf, maxa)
-
-# for i in range(len(rf[0])):
-#     for j in range(len(rf)):
-#         val = int((rf[j][i]/float(maxa))*250)
-#         ids.point([i,j,i+1,j+1], (val, val, val))
-
-# octaves = 8
-# # terrain = [[pnoise2(float(x)/HEIGHT,float(y)/WIDTH, octaves, 0.65, 6) for y in range(WIDTH)] for x in range(HEIGHT)]
-# tmp=OpenSimplex()
-# terrain = [[tmp.noise2d(float(x)/HEIGHT,float(y)/WIDTH) for y in range(WIDTH)] for x in range(HEIGHT)]
-
-# mini, maxa = 0.0, 0.0
-# for i in range(HEIGHT):
-#     for j in range(WIDTH):
-#         if terrain[i][j] < mini:
-#             mini = terrain[i][j]
-#         if terrain[i][j] > maxa:
-#             maxa = terrain[i][j]
-# print(mini, maxa)
-def color(val): 
-    if 215 <= val: # mountains
+def colorize(val):
+    # return (val, val, val) 
+    if 250 <= val: # mountains
         return (250, 250, 250)
-    elif 200 <= val < 215:
+    elif 225 <= val < 250:
         return (200, 200, 200)
-    elif 175 <= val < 200: # green
+    elif 200 <= val < 225: # green
         return (150, 150, 150)
-    elif 150 <= val < 175:
+    elif 150 <= val < 200:
         return (100/2, 100, 100/3)
     elif 125 <= val < 150:
         return (175/2, 175, 175/3)
@@ -79,32 +33,77 @@ def color(val):
     else:
         return (0, 100*4//3, 100*4//3)
 
-# def norm(x, mini, maxa):
-#     return ((x-mini)/(maxa-mini))*250
+# img = Image.new('RGB', (SIZE*2-1, SIZE))
+    # ids = ImageDraw.Draw(img)
 
-# terrain = [[int(norm(terrain[x][y], mini, maxa)) for y in range(WIDTH)] for x in range(HEIGHT)]
+    # OFFSET = 2.5
+    # POWER = -.5
+    # SEED = random.randint(0, 999)
+    # print(SEED)
 
-# for i in range(len(terrain[0])):
-#     for j in range(len(terrain)):
-#         val = color(terrain[j][i])
-#         ids.point([i, j, i+1, j+1], val)
+    # dsw = diamondsquareflat.DS(SIZE, 255, seed=SEED, offset=OFFSET, power=POWER)
+    # dsw.initialize(1)
+    # dsw.smooth()
 
-img = Image.new('RGB', (SIZE*2, SIZE))
+    # # COLUMNS, ROWS
+
+    # for j in range(SIZE):
+    #     for i in range(SIZE):
+    #         val = colorize(dsw.map[i][j])
+    #         ids.point([i, j, i+1, j+1], val)
+
+    # SEED = random.randint(0, 999)
+    # copy = diamondsquareflat.DS(SIZE, 255, seed=SEED, offset=OFFSET, power=POWER)
+    # print('len',len(dsw.rget()))
+    # copy.lset(dsw.rget())
+    # copy.initialize(1)
+    # # rows
+    # for j in range(SIZE):
+    #     # columns
+    #     for i in range(SIZE):
+    #         ids.point([SIZE+i-1,j,SIZE+i,j+1], colorize(copy.map[i][j]))
+
+    # img.save('{}_{}_{}_{}_{}.png'.format(dsw.seed, SIZE, SIZE, OFFSET, POWER))
+
+def heatify(val):
+    if 0 <= val < value(.05, 255):
+        return color.HEAT_COLDEST
+    elif value(0.05, 255) <= val < value(.2, 255):
+        return color.HEAT_COLDER
+    elif value(0.2, 255) <= val < value(.4, 255):
+        return color.HEAT_COLD
+    elif value(0.4, 255) <= val < value(.6, 255):
+        return color.HEAT_WARM
+    elif value(0.6, 255) <= val < value(.8, 255):
+        return color.HEAT_WARMER
+    else:
+        return color.HEAT_WARMEST
+
+img = Image.new('RGB', (SIZE, SIZE))
 ids = ImageDraw.Draw(img)
+
+OFFSET = 1.25
+POWER = -.4
 SEED = random.randint(0, 999)
 print(SEED)
-OFFSET = 2.5
-POWER = -.3
-dsw1 = diamondsquareflat.DS(SIZE, 255, seed=SEED, offset=OFFSET, power=POWER)
-dsw2 = diamondsquareflat.DS(SIZE, 255, seed=SEED, offset=OFFSET, power=POWER)
-dsw1.initialize(1)
-dsw2.initialize(1, b=dsw1.map[0][SIZE-1], c=dsw1.map[SIZE-1][SIZE-1])
+
+dsw = diamondsquareflat.DS(SIZE, 255, seed=SEED, offset=OFFSET, power=POWER)
+dsw.initialize(1)
 for j in range(SIZE):
     for i in range(SIZE):
-        val = color(dsw1.map[i][j])
+        ids.point([i,j, i+1,j+1], colorize(dsw.map[i][j]))
+img.save('{}_{}_{}_{}_{}.png'.format(dsw.seed, SIZE, SIZE, OFFSET, POWER))
+
+
+img = Image.new('RGB', (SIZE, SIZE))
+ids = ImageDraw.Draw(img)
+heat = heatmap.HM(SIZE)
+heat.applyHeat(dsw.map)
+
+# COLUMNS, ROWS
+for j in range(SIZE):
+    for i in range(SIZE):
+        val = heatify(heat.heat[i][j])
         ids.point([i, j, i+1, j+1], val)
-for j in range(SIZE):
-    for i in range(SIZE):
-        val = color(dsw2.map[i][j])
-        ids.point([SIZE+i, j, SIZE+i+1, j+1], val)
-img.save('map3B_{}_{}_{}_{}_{}.png'.format(dsw1.seed, SIZE, SIZE, OFFSET, POWER))
+
+img.save('heat_{}_{}_{}_{}_{}.png'.format(dsw.seed, SIZE, SIZE, OFFSET, POWER))

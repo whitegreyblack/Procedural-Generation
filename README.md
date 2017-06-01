@@ -5,11 +5,8 @@ This repo will hold the various algorithms that I plan on implementing in python
 - 5/26/17 : Repo Creation
 
 ### Midpoint Displacement Algorithm
-### Diamon Square Algorithm
+### Diamond Square Algorithm
 ### Drunkard's Walk Algorithm
-### Perlin Noise
-### Brownian Noise
-### Markdown
 
 Markdown is a lightweight and easy-to-use syntax for styling your writing. It includes conventions for
 

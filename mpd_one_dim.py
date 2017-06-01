@@ -42,6 +42,7 @@ class MPD:
         if self.world[x+1] > self.maxa:
             self.maxa = self.world[x+1]
         self.subdivide(x+1, end, delta*self.noise)
+        
     def smooth(self, x1=None, x2=None):
         for x in range(x1 if x1 else 0, x2 if x2 else len(self.world)):
             self.world[x] = (self.world[(x-1)%(len(self.world))]+self.world[x]+self.world[(x+1)%(len(self.world))])/3.0
