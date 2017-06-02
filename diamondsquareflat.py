@@ -1,4 +1,6 @@
 import random
+import numpy
+import pprint
 
 class DS:
     """ Returns a list of lists of size (2^n)+1 of values ranging from 0-255 """
@@ -84,6 +86,26 @@ class DS:
         for i in range(1, self.size):
             for j in range(1, self.size):
                 self._set(i, j, self._smooth(i, j))
+
+    def minmax(self):
+        self.min, self.max = 0, 0
+        for i in range(self.size):
+            for j in range(self.size):
+                self.min = self._get(i,j) if self._get(i,j) < self.min else self.min
+                self.max = self._get(i,j) if self._get(i,j) > self.max else self.max
+
+    def normalize(self, val):
+        self.minmax()
+        def norm(x):
+                # print('x', x, x-self.min, float(self.max-self.min), (x-self.min)/float(self.max-self.min))
+                return self._int((x-self.min)/float(self.max-self.min)*val)
+
+        copy = numpy.copy(self.map)
+        for i in range(self.size):
+            for j in range(self.size):
+                copy[i][j] = norm(float(self._get(i, j)))
+        return copy
+
     def _sum(self, x, y, l ,t, r, b, v):
         if not v:
             return self._tot([self._get(l, t), self._get(r, t), self._get(l, b), self._get(r, b)])

@@ -36,31 +36,33 @@ def smooth(world, maxa):
     print(pvar.format("Maxa", newmaxa))
     return newworld, newmaxa
 
-def randomfill(x, y, l, s=None): 
+def randomfill(x, y, l, s=random.randint(0,99999), iter=0): 
     """ Returns map filled with drunkards height algo """
-    seed = random.randint(0,99999)
-    print(seed)
-    random.seed(s if s else seed)
+    random.seed(s)
     limit = int(x * y * l)
     height = set()
     valid = set()
     world = [[0 for i in range(y)] for j in range(x)] 
-    print(pvar.format('limit', limit))
     while len(valid) < limit:
         ry, rx = random.randint(0, y-1), random.randint(0, x-1)
-        # world[rx][ry] += 1
         world[rx][ry] += 1
         valid.add((rx, ry))
         height.add(world[rx][ry])
-    print(pvar.format('valid',len(valid)))
-    return world, sorted(height, reverse=True)[0]
+    print(height)
+    height = sorted(height, reverse=True)[0]
+    for x in range(iter):
+        world, height = smooth(world, height)
+    for i in range(len(world)):
+        for j in range(len(world[0])):
+            world[i][j] /= float(height)
+    return world, height
 
 def main():
     ''' initialize '''
-    WIDTH, HEIGHT = 80, 50
-    tdl.setFont('terminal8x12_gs_ro.png')
+    WIDTH, HEIGHT = 65, 65
+    tdl.setFont('fonts/terminal8x12_gs_ro.png')
     console = tdl.init(WIDTH, HEIGHT, 'heightmap')
-    world, maxa = randomfill(WIDTH, HEIGHT, .4, 999)
+    world, maxa = randomfill(WIDTH, HEIGHT, .6, 999)
 
     print(pvar.format('maxa2', maxa))
     pX, pY = WIDTH//2, HEIGHT//2
