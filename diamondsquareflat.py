@@ -1,6 +1,9 @@
 import random
 import numpy
 import pprint
+from collections import namedtuple
+
+point = namedtuple("Point", ("a", "b"))
 
 class DS:
     """ Returns a list of lists of size (2^n)+1 of values ranging from 0-255 """
@@ -14,11 +17,12 @@ class DS:
         self.power = power
         self.map = [[0 for j in range(self.size)] for i in range(self.size)]
 
-    def initialize(self, n, a=None, b=None, c=None, d=None):
+    def initialize(self, n, a=0, b=0, c=0, d=0):
+        """@Parameters (n: ?, a=NW, b=SW, c=NE, d=SE)"""
         # a b
         # d c
-        def setpoint(x, y, v=None): 
-            self.sset(x, y, random.randint(0, self.value*2)) if not v else self.sset(x, y, v)
+        def setpoint(x, y, v=0): 
+            self.sset(x, y, random.randint(0, self.value) if v else v)
         self.num = n
         s = self.size-1 # set to list coordinates        
         setpoint(0, 0, a)
@@ -36,8 +40,11 @@ class DS:
     def _set(self, a, b, c): 
         self.map[a][b] = c
 
-    def sset(self, a, b, c): 
-        self.map[a][b] = c if self._get(a,b) is 0 else self._get(a, b)
+    def sset(self, a, b, c):
+        try:
+            self.map[a][b] = c if self._get(a,b) is 0 else self._get(a, b)
+        except TypeError:
+            print(point(a, b))
     def tget(self):
         values = []
         for i in range(self.size):
@@ -140,4 +147,6 @@ class DS:
             self.diamondsquare(l, y, x, b, d)
             self.diamondsquare(x, y, r, b, d)
 
-  
+if __name__ == "__main__":
+    dsf = DS()
+    dsf.initialize(50)
