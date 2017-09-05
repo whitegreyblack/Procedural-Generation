@@ -50,8 +50,8 @@ class MPD:
 pvar = "{}: {}"
 
 ''' initialize '''
-WIDTH, HEIGHT = 300, 60
-tdl.setFont('4x6.png')
+WIDTH, HEIGHT = 300, 128
+tdl.setFont('fonts/4x6.png')
 console = tdl.init(WIDTH, HEIGHT, 'heightmap')
 
 line = MPD(WIDTH, HEIGHT, .7)

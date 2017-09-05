@@ -51,26 +51,28 @@ class MPD:
         self.map[W][H] = i = self.randvalue()
 
         # initialize diamond
-        self.map[W/2][0] = b = (a+c)/2+self.displace(W,H)
-        self.map[0][H/2] = d = (a+g)/2+self.displace(W,H)
-        self.map[W][H/2] = f = (c+i)/2+self.displace(W,H)
-        self.map[W/2][H] = h = (g+i)/2+self.displace(W,H)
+        self.map[W//2][0] = b = (a+c)/2+self.displace(W,H)
+        self.map[0][H//2] = d = (a+g)/2+self.displace(W,H)
+        self.map[W][H//2] = f = (c+i)/2+self.displace(W,H)
+        self.map[W//2][H] = h = (g+i)/2+self.displace(W,H)
 
         # initialize square
-        self.map[W/2][H/2] = e = self.normalize((b+d+f+h)/4)
+        self.map[W//2][H//2] = e = self.normalize((b+d+f+h)/4)
 
         # recursive call
-        #self.midpoints((0,0), (W/2, H/2))
-        # self.midpoints((W/2,0), (W, H/2))
-        self.midpoints((0,H/2), (W, H/2))
-        self.midpoints((W/2,H/2), (W, H))
+        self.midpoints((0,0), (W//2, H//2))
+        self.midpoints((W//2,0), (W, H//2))
+        self.midpoints((0,H//2), (W, H//2))
+        self.midpoints((W//2,H//2), (W, H))
 
     def midpoints(self, a, i):
         print(a, i)
         ax, ay = a
         ix, iy = i
-        cx, cy = ix, ay
-        gx, gy = ax, iy
+        ax, ay = int(ax), int(ay)
+        ix, iy = int(ix), int(iy)
+        cx, cy = int(ix), int(ay)
+        gx, gy = int(ax), int(iy)
         
         if ax+1 >= ix or ay+1 >= iy:
             return
@@ -80,7 +82,7 @@ class MPD:
         g = self.map[gx][gy]
         i = self.map[ix][iy]
 
-        W, H = (ix+ax)/2, (iy+ay)/2
+        W, H = (ix+ax)//2, (iy+ay)//2
         print(W,H)
         # initialize diamond
         self.map[W][ay] = b = (a+c)/2+self.displace(W,H)
@@ -92,10 +94,10 @@ class MPD:
         self.map[W][H] = e = self.normalize((b+d+f+h)/4)
 
         # recursive call
-        self.midpoints((ax,ay), (ix-W/2, iy-H/2))
-        #self.midpoints((ix-W/2,ay), (ax+W, ay+H/2))
-        # self.midpoints((ax+0,ax+H/2), (ax+W/2, ax+H))
-        # self.midpoints((W/2,H/2), (W, H))
+        self.midpoints((ax,ay), (ix-W//2, iy-H//2))
+        self.midpoints((ix-W//2,ay), (ax+W, ay+H//2))
+        self.midpoints((ax+0,ax+H//2), (ax+W//2, ax+H))
+        self.midpoints((W//2,H//2), (W, H))
         
 
 if __name__ == "__main__":

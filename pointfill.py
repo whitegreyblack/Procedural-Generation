@@ -1,4 +1,3 @@
-import tdl
 import math
 import color
 import random
@@ -6,9 +5,7 @@ import random
 pvar = "{}: {}"
 
 ''' initialize '''
-WIDTH, HEIGHT = 40, 20
-tdl.setFont('terminal8x12_gs_ro.png')
-console = tdl.init(WIDTH, HEIGHT, 'heightmap')
+WIDTH, HEIGHT = 20, 40
 
 def randomfill(x, y, l, s=None): 
     """ Returns map filled with drunkards height algo """
@@ -36,16 +33,13 @@ world, maxa = randomfill(WIDTH, HEIGHT, .5)
 print(pvar.format('maxa', maxa))
 pX, pY = WIDTH//2, HEIGHT//2
 
-while True:
-    console.clear()
-    for i in range(len(world)):
-        for j in range(len(world[i])):
-            val = min((250//(maxa-1))*world[i][j]+2, 250)
-            console.draw_char(i, j, '.', (val, val, val))
-    tdl.flush()
-    for event in tdl.event.get():
-        if (event.type == 'KEYDOWN') and (event.keychar.lower() == 'q'):
-            raise SystemExit('The window has been closed.')
-
-        if event.type == 'QUIT':
-            raise SystemExit('The window has been closed.')
+lines=[]
+for i in range(len(world)):
+    line = ""
+    for j in range(len(world[i])):
+        val = min((250//(maxa-1))*world[i][j]+2, 250)
+        #console.draw_char(i, j, '.', (val, val, val))
+        #print(i, j, '.')
+        line += "." if val > 125 else " "
+    lines.append(line)
+print("\n".join(lines))

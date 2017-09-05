@@ -6,7 +6,7 @@ import drunkards
 import randomfill
 import multipleheight
 import dsa
-
+import mpd
 WIDTH, HEIGHT = 64, 64
 console = tdl.init(WIDTH, HEIGHT)
 
@@ -42,7 +42,7 @@ console = tdl.init(WIDTH, HEIGHT)
 #         val = int((rf[j][i]/float(maxa))*250)
 #         console.draw_char(i, j, '#', (val, val, val))
 
-mpd = dsa.MPD(WIDTH, HEIGHT, 50)
+mpd = mpd.MPD(WIDTH, HEIGHT, 50)
 mpd.colorize()
 
 for i in range(WIDTH):

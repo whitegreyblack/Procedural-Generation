@@ -26,18 +26,18 @@ class MPD:
         x7, y7 = x1, y9
         x3, y3 = x9, y1
         dz = (random.random()*2-1*1)*delta
-        x, y = (x9+x1)/2, (y9+y1)/2
+        x, y = (x9+x1)//2, (y9+y1)//2
         if x < 1 or y < 1: 
             return
         
         # diamond
-        self.world[x][y]
+        #self.world[x][y]
 
-        self.diamondsquare((0,0), ((x9+x1)/2,(y9+y1)/2), delta)
+        self.diamondsquare((0,0), ((x9+x1)//2,(y9+y1)//2), delta)
 
 ''' initialize '''
 WIDTH, HEIGHT = 128, 128
-tdl.setFont('4x6.png')
+tdl.setFont('fonts/4x6.png')
 console = tdl.init(WIDTH, HEIGHT, 'heightmap')
 plane = MPD(WIDTH, HEIGHT, .8, 50)
 

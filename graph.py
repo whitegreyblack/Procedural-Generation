@@ -40,7 +40,7 @@ class Tile:
     def getColor(self, x):
         r, g, b = self.foreground if x == 1 else self.background
         return (r, g, b)
-# 
+
     def __add__(self, other):
         if isinstance(other, Tile):
             r1, g1, b1 = self.getColor(1)
@@ -61,6 +61,7 @@ class Tile:
                 for i in other:
                     self.__iadd__(i)
         return self
+
 class Graph:
     def __init__(self, name, width, height):
         self.name = name

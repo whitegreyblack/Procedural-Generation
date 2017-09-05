@@ -94,7 +94,7 @@ MOVEMENT_KEYS = {
 
 
 
-tdl.setFont('terminal12x12_gs_ro.png') # Configure the font.
+tdl.setFont('fonts/terminal12x12_gs_ro.png') # Configure the font.
 console = tdl.init(WIDTH, HEIGHT, 'python-tdl tutorial')
 x, y = console.get_size()
 world = [['#' for i in range(y)] for j in range(x)]

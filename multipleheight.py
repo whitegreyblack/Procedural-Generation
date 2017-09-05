@@ -51,7 +51,7 @@ if __name__ == "__main__":
 
     ''' initialize '''
     WIDTH, HEIGHT = 240, 90
-    tdl.setFont('terminal8x12_gs_ro.png')
+    tdl.setFont('fonts/terminal8x12_gs_ro.png')
     console = tdl.init(WIDTH, HEIGHT, 'heightmap')
     #world, maxa = randomfill(WIDTH, HEIGHT, .5)
     world, maxa = drunkards(WIDTH, HEIGHT, .9, 4)
