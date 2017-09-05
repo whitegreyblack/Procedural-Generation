@@ -1,9 +1,12 @@
 import random
 import math
 import color as c
-import Queue as queue
+import queue
+from collections import namedtuple
 from copy import deepcopy
 
+seedNum = namedtuple("Seed", (['seed']))
+tileLen = namedtuple("Tile", (["x", "y"]))
 class Territory:
     def __init__(self, pos):
         self. pos = pos
@@ -42,7 +45,7 @@ class Map:
         #self.kingdoms = [None for i in range(int(self.x*self.y/1000*1.5))]
         self.temperature = deepcopy(self.world)
         self.seed = random.randint(0,99999)
-        print(self.seed if seed == None else seed)
+        print(seedNum(self.seed if not seed else seed))
         random.seed(seed if seed != None else self.seed)
         self.build()
 
@@ -147,6 +150,7 @@ class Map:
         locations = random.sample(self.valid, tribes)
         available = deepcopy(self.valid)
         print("LEN TILES: {} {}".format(len(available),type(available)))
+        print(tileLen(len(available), type(available)))
         for i in range(tribes):
             x, y = available.pop(random.randint(0,len(available)))
             start.append((x,y))
@@ -163,7 +167,9 @@ class Map:
         print(astarsearch((70,40),(65, 42)))
         return world, self.valid, start
     def heightify(self):
-        print(self.lim)
+        limits = namedtuple("Limits", ("l"))
+        height = namedtuple("Height", ("h"))
+        print(limits(self.lim))
         k = set()
         steps = {
                 0: [0, -1],
@@ -185,8 +191,8 @@ class Map:
             self.height[rx][ry] += 1
             if self.height[rx][ry] > self.maxa:
                 self.maxa = self.height[rx][ry]
-                
-        print(k)
+              
+        print(height(k))
     def removeIslands(self):
         for i in range(len(self.world)):
             for j in range(len(self.world[0])):
@@ -215,6 +221,7 @@ class Map:
         return total
 
     def waterfy(self):
+        water=namedtuple("Water", ("w"))
         k = set()
         for i in range(self.x):
             for j in range(self.y):
@@ -223,6 +230,17 @@ class Map:
                     k.add(self.world[i][j])
                     if self.world[i][j] < self.mini:
                         self.mini = self.world[i][j]
-        print(k)
+        print(water(k))
     def details(self):
         return self.world, self.valid, self.maxa, -self.mini
+
+if __name__ == "__main__":
+    world, valid, maxa, mini = Map(75, 200, .35).details()
+    print(maxa, mini)
+    lines = []
+    for i in range(len(world)):
+        line = ""
+        for j in range(len(world[0])):
+            line += "#" if (i, j) in valid else "."
+        lines.append(line)
+    print("\n".join(lines))
