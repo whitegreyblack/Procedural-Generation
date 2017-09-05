@@ -54,7 +54,7 @@ class Tile:
             r1, g1, b1 = self.getColor(1)
             r2, g2, b2 = other.foreground
             self.height = (self.height+other.height)/2
-            print(self.height)
+            #print(self.height)
             self.foreground = ((r1+r2)/2,(g1+g2)/2,(b1+b2)/2)
         elif isinstance(other, list):
             if all([isinstance(i, Tile) for i in other]):

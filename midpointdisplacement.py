@@ -3,7 +3,6 @@ import math
 import copy
 import graph
 import color
-import graph
 import random
 import movement
 class MPD:
@@ -21,10 +20,10 @@ class MPD:
     def serialdivide(self, x, y, z=None):
         if z == None:
             z = len(self.world)//2
-        print(x, y, z)
+        #print(x, y, z)
         if (y-x) <= 1 or x == y or z == 0:
             return
-        print(x, y, z)
+        #print(x, y, z)
         if x % len(self.world) == 0:
             self.world[x] = random.randint(0, 250)
         if y % len(self.world) == 0:
@@ -34,7 +33,7 @@ class MPD:
         self.serialdivide(x+1, y-1, z-1)
 
     def smooth(self, size):
-        print('smoothing')
+        #print('smoothing')
         for x in range(size):
             self.world[x] = (self.world[x-1]+self.world[x]+self.world[(x+1)%(size)])//3
 
@@ -43,6 +42,7 @@ class MPD2D:
         self.world = [[graph.Tile(i, j) for j in range(y)] for i in range(x)]
         self.populate((0,0), (x-1,y-1))
         random.seed(random.randint(0, 9999))
+
     def populate(self, a, b):
         x0, y0 = a
         x1, y1 = b
@@ -69,37 +69,37 @@ class MPD2D:
         dx, dy = ax, cy
         
         # DIAMOND COORDINATES
-        x5, y5 = (ax+bx+cx+dx)/4, (ay+by+cy+dy)/4
+        x5, y5 = (ax+bx+cx+dx)//4, (ay+by+cy+dy)//4
         self.world[x5][y5] += self.world[ax][ay]
         self.world[x5][y5] += self.world[bx][by]
         self.world[x5][y5] += self.world[cx][cy]
         self.world[x5][y5] += self.world[dx][dy]
 
-        print(self.world[x5][x5])
+        # print(self.world[x5][x5])
 
         # SQUARE COORDINATES
-        # x1, y1 = (ax+bx)/2, (ay+by)/2
-        # self.world[x1][y1] += self.world[ax][ay]
-        # self.world[x1][y1] += self.world[bx][by]
+        x1, y1 = (ax+bx)//2, (ay+by)//2
+        self.world[x1][y1] += self.world[ax][ay]
+        self.world[x1][y1] += self.world[bx][by]
 
-        # x2, y2 = (bx+cx)/2, (by+cy)/2
-        # self.world[x2][y2] += self.world[bx][by]
-        # self.world[x2][y2] += self.world[by][cy]
+        x2, y2 = (bx+cx)//2, (by+cy)//2
+        self.world[x2][y2] += self.world[bx][by]
+        self.world[x2][y2] += self.world[by][cy]
 
-        # x3, y3 = (cx+dx)/2, (cy+dy)/2
-        # self.world[x3][y3] += self.world[cx][cy]
-        # self.world[x3][y3] += self.world[dx][dy]
+        x3, y3 = (cx+dx)//2, (cy+dy)//2
+        self.world[x3][y3] += self.world[cx][cy]
+        self.world[x3][y3] += self.world[dx][dy]
 
-        # x4, y4 = (ax+dx)/2, (ay+dy)/2
-        # self.world[x4][y4] += self.world[ax][ay]
-        # self.world[x4][y4] += self.world[dx][dy]
+        x4, y4 = (ax+dx)//2, (ay+dy)//2
+        self.world[x4][y4] += self.world[ax][ay]
+        self.world[x4][y4] += self.world[dx][dy]
 
-        # # subdivide each square
-        # if (ax+(cx-ax)/2) > ax and (ay+(cy-ay)/2) > ay-1:
-        #     self.divide(a,(x5,y5))
-        #     self.divide((x1,y1),(x2,y2))
-        #     self.divide((x5,y5), c)
-        #     self.divide((x4,y4),(x3,y3))
+        # subdivide each square
+        if (ay+(cy-ay)//2) > ay:
+             self.divide((x1, y1), (x5, y5), roughness*3//4)
+             self.divide((x1, y1), (x2, y2), roughness*3//4)
+             self.divide((x5, y5), (cx-1, cy-1), roughness*3//4)
+             self.divide((x4, y4), (x3, y3), roughness*3//4)
 
     def neighbor(self, x, y):
         total = 0
@@ -131,32 +131,21 @@ class MPD2D:
                 if self.world[i][j].height > high:
                     high = self.world[i][j].height
         self.height = high
-        if a:
-            print(height)
+        #if a:
+            #print(height)
 pvar = "{}: {}"
 
 ''' initialize '''
-WIDTH, HEIGHT = 90, 60
-tdl.setFont('terminal8x12_gs_ro.png')
-#tdl.setFont('4x6.png')
-console = tdl.init(WIDTH, HEIGHT, 'heightmap')
+WIDTH, HEIGHT = 60, 180
 
 plane = MPD2D(WIDTH, HEIGHT)
-print(plane.height)
-while True:
-    console.clear()
-    for i in range(WIDTH):
-        for j in range(HEIGHT):
-                val = plane.world[i][j].height * 255 / plane.height
-                console.draw_char(i, j, '#', (0, val, val))
-    tdl.flush()
-    for event in tdl.event.get():
-        if (event.type == 'KEYDOWN') and (event.keychar.lower() == 'q'):
-            raise SystemExit('The window has been closed.')
-        if (event.type == 'KEYDOWN') and (event.keychar == 's'):
-            plane.smooth()
-        if (event.type == 'KEYDOWN') and (event.keychar == 'd'):
-            plane.divide((0,0), (WIDTH-1, HEIGHT-1), 0)
-            plane.maxa()
-        if event.type == 'QUIT':
-            raise SystemExit('The window has been closed.')
+#print(plane.height)
+lines = []
+for i in range(WIDTH):
+    line = ""
+    for j in range(HEIGHT):
+        val = plane.world[i][j].height * 255 / plane.height
+        line += "#" if val > 0 else " "
+#            val = plane.world[i][j].height * 255 / plane.height
+    lines.append(line)
+print("\n".join(lines))

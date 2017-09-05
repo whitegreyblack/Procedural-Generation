@@ -5,6 +5,9 @@ import queue
 from collections import namedtuple
 from copy import deepcopy
 
+GRN = "\x1b[0;32;40m"
+END = "\x1b[0m"
+
 seedNum = namedtuple("Seed", (['seed']))
 tileLen = namedtuple("Tile", (["x", "y"]))
 class Territory:
@@ -241,6 +244,6 @@ if __name__ == "__main__":
     for i in range(len(world)):
         line = ""
         for j in range(len(world[0])):
-            line += "#" if (i, j) in valid else "."
+            line += GRN+"#"+END if (i, j) in valid else "."
         lines.append(line)
     print("\n".join(lines))
