@@ -7,6 +7,15 @@ import movement
 from random import randint, random
 from bearlibterminal import terminal
 
+def setup(x, y):
+    terminal.open()
+    terminal.set(f'window: size={x}x{y}')
+    terminal.refresh()
+
+def key_handle_exit(key):
+    if key in (terminal.TK_Q, terminal.TK_ESCAPE, terminal.TK_CLOSE):
+        return True
+
 class MPD:
     def __init__(self, width, height, noise):
         self.noise = noise
@@ -52,25 +61,25 @@ class MPD:
         for x in range(x1 if x1 else 0, x2 if x2 else len(self.world)):
             self.world[x] = (self.world[(x - 1) % len(self.world)] + self.world[x] + self.world[(x + 1) % len(self.world)]) / 3.0
 
-''' initialize '''
-WIDTH, HEIGHT = 80, 50
+if __name__ == "__main__":
+    WIDTH, HEIGHT = 80, 50
 
-terminal.open()
-terminal.set(f'window: size={80}x{25}, cellsize=8x16')
+    terminal.open()
+    terminal.set(f'window: size={80}x{25}, cellsize=8x16')
 
-line = MPD(WIDTH, HEIGHT, .7)
-#line.subdivide(0, WIDTH-1, 50)
+    line = MPD(WIDTH, HEIGHT, .7)
+    #line.subdivide(0, WIDTH-1, 50)
 
-line.serialdivide(0, WIDTH-1, 50)
-total = line.maxa - line.mini
+    line.serialdivide(0, WIDTH-1, 50)
+    total = line.maxa - line.mini
 
-while True:
-    terminal.clear()
-    for i in range(WIDTH):
-        terminal.puts(i, int(round((line.world[i] - line.mini)) / (total) * HEIGHT), 'o')
-    terminal.refresh()
-    key = terminal.read()
-    if key in (terminal.TK_Q, terminal.TK_ESCAPE, terminal.TK_CLOSE):
-        break
-    elif key == terminal.TK_S:
-        line.smooth()
+    while True:
+        terminal.clear()
+        for i in range(WIDTH):
+            terminal.puts(i, int(round((line.world[i] - line.mini)) / (total) * HEIGHT), 'o')
+        terminal.refresh()
+        key = terminal.read()
+        if key_handle_exit(key):
+            break
+        elif key == terminal.TK_S:
+            line.smooth()
