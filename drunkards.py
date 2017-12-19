@@ -48,10 +48,18 @@ def term_loop(m):
         key = terminal.read()
         if key_handle_exit(key):
             break
+
+        elif key == terminal.TK_A:
+            print('aa')
+            n = DrunkardsPeaks(200, 60, .45, 13)  
+            n.generate()
+            m += n
+
         elif key == terminal.TK_S:
             m.smooth()
             m.normalize()
             m.evaluate()
+
         elif key == terminal.TK_F:
             output_flag = not output_flag
 
@@ -75,7 +83,8 @@ class Map:
         return self
 
     def __imul__(self, other):
-        print(self.world[self.height//2][self.width//2], self.world[self.height//2][self.width//2])
+        # print(self.world[self.height//2][self.width//2], other.world[self.height//2][self.width//2])
+        # print(self.max, other.max)
         if (self.width, self.height) != (other.width, other.height):
             raise ValueError('World Input has different dimensions')
         for y in range(self.height):
@@ -133,52 +142,58 @@ class Map:
                 world[y][x] = value / num
         self.world = world
 
-    def normalize(self):
-        if not hasattr(self, 'max'):
-            self.maxmin()
-
+    def normalize(self, norm=1):
+        self.maxmin()
         world = [[0 for _ in range(self.width)] for _ in range(self.height)]
         for y in range(self.height):
             for x in range(self.width):
-                world[y][x] = int((self.world[y][x] / self.max) * 250)
+                world[y][x] = (self.world[y][x] / self.max) * norm
         self.world = world
         self.maxmin()
 
-    def integer_to_hex(self, value):
-        value = hex(value).split('x')[1]
+    def pad(self, value):
         if len(value) < 2:
-            value = "0" + value
+            return "0" + value
+        return value
+
+    def integer_to_hex(self, value):
+        value = self.pad(hex(int(value * 250)).split('x')[1])
         return '#' + value * 3
+
+    def integer_to_red(self, value):
+        value = self.pad(hex(int(value * 250)).split('x')[1])
+        return' #' + value + '0000'
+
+    def integer_to_green(self, value):
+        value = self.pad(hex(int(value * 250)).split('x')[1])
+        return' #' + '00' + value + '00'
+
+    def integer_to_blue(self, value):
+        value = self.pad(hex(int((1 - value) * 250)).split('x')[1])
+        return' #' + '0000' + value
 
     def split_range(self, number=25):
         return sorted([(self.max * i) / number for i in range(number)], reverse=True)
 
     def evaluate(self):
-        if not hasattr(self, 'max'):
-            self.maxmin()
-
+        self.maxmin()
         for y in range(self.height):
             for x in range(self.width):
-                if 215 <= self.world[y][x]:
+                if .6 <= self.world[y][x]:
                     value = ('^', self.integer_to_hex(self.world[y][x]))
                     self.world_colored[y][x] = value
                     self.world_normal[y][x] = value
 
-                elif 130 <= self.world[y][x] < 215:
-                    value = ('^', self.integer_to_hex(self.world[y][x]))
-                    self.world_colored[y][x] = value
-                    self.world_normal[y][x] = value
-
-                elif 60 <= self.world[y][x] < 130:
-                    self.world_colored[y][x] = ('"', '#40FF40')
+                elif .3 <= self.world[y][x] < .6:
+                    self.world_colored[y][x] = ('"', self.integer_to_green(self.world[y][x]))
                     self.world_normal[y][x] = ('"', self.integer_to_hex(self.world[y][x]))
 
-                elif 10 <= self.world[y][x] < 60:
-                    self.world_colored[y][x] = ('.', '#EEDD33')
+                elif .05 <= self.world[y][x] < .3:
+                    self.world_colored[y][x] = ('.', self.integer_to_green(self.world[y][x]))
                     self.world_normal[y][x] = ('.', self.integer_to_hex(self.world[y][x]))
 
                 else:
-                    self.world_colored[y][x] = ('~', '#4040FF')
+                    self.world_colored[y][x] = ('~', self.integer_to_blue(self.world[y][x]))
                     self.world_normal[y][x] = ('~', self.integer_to_hex(self.world[y][x]))
 
     def output_terminal(self, colored=False):
@@ -220,6 +235,8 @@ class Drunkards(Map):
             self.world[ry][rx] += 1
             self.spaces.add((rx, ry))
 
+        self.normalize()
+
 class DrunkardsPeaks(Map):
     def __init__(self, width, height, limit, peaks, seed=None):
         """Drunkards algorithm with peaks"""
@@ -246,6 +263,8 @@ class DrunkardsPeaks(Map):
 
             self.world[ry][rx] += 1
             self.spaces.add((rx, ry))
+
+        self.normalize()
 
 def test_drunkards():
     width, height = 160, 50
@@ -275,16 +294,11 @@ def test_combination():
     width, height = 200, 60
     setup(width, height)
     
-    m = Drunkards(width, height, .45)
-    n = DrunkardsPeaks(width, height, .45, 13)  
+    m = DrunkardsPeaks(width, height, .45, 13)  
 
     m.generate()
-    n.generate()
-    
-    m *= n
-
-    m.normalize()
     m.evaluate()
+
     term_loop(m)
 
 if __name__ == "__main__":
