@@ -1,6 +1,0 @@
-prefab = [
-    ['STLCOR', 'SHLINE', 'SHLINE', 'SHLINE', 'STRCOR'],
-    ['SVLINE', 'BULLET', 'BULLET', 'BULLET', 'SVLINE'],
-    ['SVLINE', 'BULLET', 'BULLET', 'BULLET', 'SVLINE'],
-    ['SBLCOR', 'SHLINE', 'SHLINE', 'SHLINE', 'SBRCOR']
-]

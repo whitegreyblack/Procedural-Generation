@@ -41,8 +41,10 @@ class DS:
                     self.map[i][j] = l[i]
     def lset(self, l):
         self.map[0] = l
+
     def rset(self, l):
         self.map[self.size-1] = l
+        
     def _add(self, l, x, y):
         l.extend([self._get(x,y)]*self.num)
         return l
@@ -139,4 +141,6 @@ class DS:
             self.diamondsquare(l, y, x, b, d)
             self.diamondsquare(x, y, r, b, d)
 
-  
+if __name__ == "__main__":
+    dsf = DS(size=124, n=50)
+    dsf.output_image(True)
