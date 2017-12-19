@@ -5,6 +5,7 @@ import graph
 import color
 import random
 import movement
+from bearlibterminal import terminal
 class MPD:
     def __init__(self, size, height):
         self.world = [height//2 for i in range(size)]
@@ -133,19 +134,22 @@ class MPD2D:
         self.height = high
         #if a:
             #print(height)
-pvar = "{}: {}"
+# pvar = "{}: {}"
 
-''' initialize '''
-WIDTH, HEIGHT = 60, 180
+# ''' initialize '''
+# WIDTH, HEIGHT = 60, 180
 
-plane = MPD2D(WIDTH, HEIGHT)
-#print(plane.height)
-lines = []
-for i in range(WIDTH):
-    line = ""
-    for j in range(HEIGHT):
-        val = plane.world[i][j].height * 255 / plane.height
-        line += "#" if val > 0 else " "
-#            val = plane.world[i][j].height * 255 / plane.height
-    lines.append(line)
-print("\n".join(lines))
+# plane = MPD2D(WIDTH, HEIGHT)
+# #print(plane.height)
+# lines = []
+# for i in range(WIDTH):
+#     line = ""
+#     for j in range(HEIGHT):
+#         val = plane.world[i][j].height * 255 / plane.height
+#         line += "#" if val > 0 else " "
+# #            val = plane.world[i][j].height * 255 / plane.height
+#     lines.append(line)
+# print("\n".join(lines))
+
+if __name__ == "__main__":
+    width, height = 80, 25

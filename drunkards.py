@@ -163,7 +163,7 @@ class Map:
             for x in range(self.x):
                 ids.rectangle(
                     [x * 8, y * 8, x * 8 + 8, y * 8 + 8], world[y][x][1])
-        img.save('heightmap.png')
+        img.save('drunkards.png')
 
 if __name__ == "__main__":
     width, height = 160, 50

@@ -1,106 +1,120 @@
-import tdl
 import math
 import color
 import random
+from random import randint, choice
 import randomfill
+from drunkards import setup, key_handle_exit, steps_4_way
+from bearlibterminal import terminal
 
 ''' map functions '''
-def drunkards(x, y, l, peaks, s=None): 
-    """ Returns map filled with drunkards height algo """
-    steps = {
-            0: [0, -1],
-            1: [0, 1],
-            2: [-1, 0],
-            3: [1, 0],
-        }
-    points = [(random.randint(x/2-x/4,x/2+x/4),random.randint(y/2-y/3,y/2+y/3)) for i in range(peaks)]
+class Map:
+    def __init__(self, x, y, l, peaks, seed=None):
+        """Drunkards algorithm with peaks"""
+        self.seed = seed if seed else random.randint(0, 9999)
+        random.seed(self.seed)
 
-    def checkbounds(tx, ty):
-        if not 0 <= tx < int(x):
-            return points[random.randint(0, len(points)-1)]
-        if not 0 <= ty < int(y):
-            return points[random.randint(0, len(points)-1)]
-        return (tx, ty)
+        self.x, self.y = x, y
+        self.limit = int(x * y * l)
+        self.world = [[0 for _ in range(x)] for _ in range(y)]
+        self.peaks = [(
+            randint(x // 2 - x // 4, x // 2 + x // 4), 
+            randint(y // 2 - y // 3, y // 2 + y // 3)) 
+                for _ in range(peaks)]
 
-    seed = random.randint(0,99999)
-    print(seed)
-    random.seed(s if s else seed)
-    limit = int(x * y * l)
-    print("limit: {}".format(limit))
-    height = set()
-    valid = set()
-    world = [[0 for i in range(y)] for j in range(x)]
-    ry, rx = random.randint(0, y-1), random.randint(0, x-1)
+    def check_bounds(self, x, y):
+        return 0 <= x < self.x and 0 <= y < self.y
 
-    while len(valid) <= limit:
-        step = steps[random.randint(0,3)]
-        rx, ry = checkbounds(rx+step[0], ry+step[1])
-        world[rx][ry] += 1
-        valid.add((rx, ry))
+    def random_point(self):
+        # return randint(0, self.x -1), randint(0, self.y - 1)
+        return self.peaks[randint(0, len(self.peaks) - 1)]
 
-    for i in range(len(world)):
-        for j in range(len(world[i])):
-            if world[i][j] not in height:
-                height.add(world[i][j])
+    def generate(self):
+        self.spaces = set()
+        rx, ry = self.random_point()
+        while len(self.spaces) <= self.limit:
+            step = choice(list(steps_4_way()))
+            if self.check_bounds(rx + step[0], ry + step[1]):
+                rx, ry = rx + step[0], ry + step[1]
+            else:
+                rx, ry = self.random_point()
 
-    return world, sorted(height, reverse=True)
+            self.world[ry][rx] += 1
+            self.spaces.add((rx, ry))
+
+    def maxa(self):
+        height = set()
+        for y in range(self.y):
+            for x in range(self.x):
+                if self.world[y][x] not in height:
+                    height.add(self.world[y][x])
+
+        self.z = sorted(height, reverse=True)[0]
+
+    def integer_to_hex(self, value):
+        value = hex(value).split('x')[1]
+        if len(value) < 2:
+            value = "0" + value
+        return '#' + value * 3
+
+    def split_range(self, number=10):
+        if not hasattr(self, 'z'):
+            raise AttributeError("Map not built yet -- call build()")
+
+        return sorted([(self.z * i) // number for i in range(10)], reverse=True)
+
+    def normalize(self, value):
+        return int((value / self.z) * 250)
+
+    def evaluate(self):
+        if not hasattr(self, 'z'):
+            raise AttributeError("Map not built yet -- call build()")
+
+        self.world_normal = [[0 for _ in range(self.x)] for _ in range(self.y)]
+        self.world_colored = [[0 for _ in range(self.x)] for _ in range(self.y)]
+
+        ranges = self.split_range()
+        a, b, c, d = 2, 5, 7, 8
+        
+        for y in range(self.y):
+            for x in range(self.x):
+                if self.world[y][x] >= ranges[a]:
+                    self.world_colored[y][x] = ('A', '#FFFFFF')
+                    self.world_normal[y][x] = ('^', self.integer_to_hex(self.normalize(self.world[y][x])))
+
+                elif ranges[b] <= self.world[y][x] < ranges[a]:
+                    self.world_colored[y][x] = ('n', '#808080')
+                    self.world_normal[y][x] = ('^', self.integer_to_hex(self.normalize(self.world[y][x])))
+
+                elif ranges[c] <= self.world[y][x] < ranges[b]:
+                    self.world_colored[y][x] = ('*', '#40FF40')
+                    self.world_normal[y][x] = ('*', self.integer_to_hex(self.normalize(self.world[y][x])))
+
+                elif ranges[d] <= self.world[y][x] < ranges[c]:
+                    self.world_colored[y][x] = ('.', '#EEDD33')
+                    self.world_normal[y][x] = ('.', self.integer_to_hex(self.normalize(self.world[y][x])))
+
+                else:
+                    self.world_colored[y][x] = ('~', '#4040FF')
+                    self.world_normal[y][x] = ('~', self.integer_to_hex(self.normalize(self.world[y][x])))
+
+    def output_terminal(self, colored=False):
+        world = self.world_colored if colored else self.world_normal
+        for y in range(self.y):
+            for x in range(self.x):
+                yield (x, y, *world[y][x])    
 
 if __name__ == "__main__":
-
-    pvar = "{}: {}"
-
-    ''' initialize '''
-    WIDTH, HEIGHT = 240, 90
-    tdl.setFont('fonts/terminal8x12_gs_ro.png')
-    console = tdl.init(WIDTH, HEIGHT, 'heightmap')
-    #world, maxa = randomfill(WIDTH, HEIGHT, .5)
-    world, maxa = drunkards(WIDTH, HEIGHT, .9, 4)
-    print(pvar.format('maxa', maxa))
-    pX, pY = WIDTH//2, HEIGHT//2
-    worldflag = 1
+    width, height = 80, 25
+    setup(width, height)
+    m = Map(width, height, .45, 7)
+    m.generate()
+    m.maxa()
+    m.evaluate()
     while True:
-        console.clear()
-        for i in range(len(world)):
-            for j in range(len(world[i])):
-                if worldflag > 0:
-                    if (maxa*9)/10 <= world[i][j]:
-                        console.draw_char(i, j, '^', color.WHITE)
-                    elif (maxa*8)/10 <= world[i][j] < (maxa*9)/10:
-                        val = (world[i][j]*255/maxa)
-                        console.draw_char(i, j, 'n', (val, val//2, val//3))
-                    elif (maxa*7)/10 <= world[i][j] < (maxa*8)/10:
-                        val = (world[i][j]*255/maxa)
-                        console.draw_char(i, j, 'n', (val, val//2, val//3*2))                  
-                    elif (maxa*5)/10 <= world[i][j] < (maxa*7)/10:
-                        val = (world[i][j]*255/maxa)
-                        console.draw_char(i, j, 30, (0, val, val//3))   
-                    elif (maxa*4)/10 <= world[i][j] < (maxa*5)/10:
-                        val = (world[i][j]*255/maxa)
-                        console.draw_char(i, j, 6, (0, val, val//3))
-                    elif (maxa*3)/10 <= world[i][j] < (maxa*4)/10:
-                        val = (world[i][j]*255/maxa)
-                        console.draw_char(i, j, '*', (val/2, val, val/2))
-                    elif (maxa)/10 <= world[i][j] < (maxa*3)/10:
-                        val = (world[i][j]*255/maxa)
-                        console.draw_char(i, j, 'o', (val*2, val*3, val/2))
-                    else:
-                        val = max(250,(world[i][j]*255/maxa))
-                        console.draw_char(i, j, '~', (0, val, val))
-                else:
-                    if world[i][j] > 0:
-                        console.draw_char(i, j, '.', (0, 150, 150))
-
-        tdl.flush()
-        for event in tdl.event.get():
-            if (event.type == 'KEYDOWN') and (event.keychar.lower() == 'f'):
-                worldflag = worldflag * -1
-            if (event.type == 'KEYDOWN') and (event.keychar.lower() == 's'):
-                world, maxa = randomfill.smooth(world, maxa)
-            if (event.type == 'KEYDOWN') and (event.keychar.lower() == 'p'):
-                print(world)
-            if (event.type == 'KEYDOWN') and (event.keychar.lower() == 'q'):
-                raise SystemExit('The window has been closed.')
-
-            if event.type == 'QUIT':
-                raise SystemExit('The window has been closed.')
-        
+        terminal.clear()
+        for x, y, ch, col in list(m.output_terminal(True)):
+            terminal.puts(x, y, '[c={}]{}[/c]'.format(col, ch))
+        terminal.refresh()        
+        key = terminal.read()
+        if key_handle_exit(key):
+            break
