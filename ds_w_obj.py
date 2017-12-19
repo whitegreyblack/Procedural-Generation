@@ -1,7 +1,50 @@
 import random
 
+class HeightMap:
+    def __init__(self, size, low_value, high_value):
+        self.size = size
+        self.mid_value = (low_value + high_value) // 2
+        self.reset()
 
+    def reset(self):
+        self.world = [[0 for _ in range(self.size)] for _ in range(self.size)]
+
+        # initialize corners
+        self.cell = (0, 0, self.mid_value)
+        self.cell = (0, self.size - 1, self.mid_value)
+        self.cell = (self.size - 1, 0, self.mid_value)
+        self.cell = (self.size - 1, self.size - 1, self.mid_value)
+
+        self.diamond_square(0, 0, self.size - 1, self.size - 1, self.mid_value)
+
+    def get_cell(self, x, y):
+        return self.world[y][x]
+
+    def set_cell(self, x, y, v):        
+        self.world[y][x] = v
+
+    def safe_set_cell(self, x, y, v):
+        if not self.world[y][x]:
+            self.world[y][x] = v
+
+    def diamond_square(self, x1, y1, x2, y2, delta):
+        x, y = (x1 + x2) // 2, (y1 + y2) // 2
+
+        self.safe_set_cell(x, y,
+            (self.get_cell(x1, y1) + 
+             self.get_cell(x1, y2) +
+             self.get_cell(x2, y1) +
+             self.get_cell(x2, y2)) / 4 - 
+             round((random.random() - 0.5) * delta * 2))
+    
+        self.safe_set_cell(x, y1, 0)
+
+if __name__ == "__main__":
+    hm = HeightMap(65, 0, 255)
+
+'''
 class DS:
+
     """ Returns a list of lists of size (2^n)+1 of values ranging from 0-255 """
 
     def __init__(self, size=64, maxa=255, seed=random.randint(
@@ -103,10 +146,4 @@ class DS:
             self.diamondsquare(x, t, r, y, d)
             self.diamondsquare(l, y, x, b, d)
             self.diamondsquare(x, y, r, b, d)
-
-
-class
-
-
-class HeatMap:
-    def __init__(self, map)
+'''
