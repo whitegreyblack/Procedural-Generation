@@ -32,35 +32,30 @@ class DS:
         self.num = 50
         self.initialize()
 
-    def initialize(self, a=0, b=0, c=0, d=0):
+    def initialize(self, nw=0, sw=0, ne=0, se=0):
         """@Parameters (n: ?, a=NW, b=SW, c=NE, d=SE)"""
         # a b
         # d c
-        def setpoint(x, y, v=0): 
-            self.sset(x, y, random.randint(0, self.value) if v else v)
-
-        s = self.size-1 # set to list coordinates        
-        setpoint(0, 0, a)
-        setpoint(0, s, b)
-        setpoint(s, 0, d)
-        setpoint(s, s, c)
+        s = self.size - 1 # set to list coordinates        
+        self.set_point_safe(0, 0, nw if nw else random.randint(0, self.value))
+        self.set_point_safe(0, s, sw if sw else random.randint(0, self.value))
+        self.set_point_safe(s, 0, ne if ne else random.randint(0, self.value))
+        self.set_point_safe(s, s, se if se else random.randint(0, self.value))
 
         self.diamondsquare(0, 0, s, s, self.value)
+
+    def set_point(self, x, y, v):
+        if not v:
+            v = random.randint(0, self.value)
+        self.world[y][x] = v
+
+    def set_point_safe(self, x, y, v):
+        if not self.world[y][x]:
+            self.set_point(x, y, v)
         
-    def _mid(self, a, b): 
+    def mid(self, a, b): 
         return (a + b) // 2
 
-    def _get(self, a, b): 
-        return self.world[a][b]
-
-    def _set(self, a, b, c): 
-        self.world[a][b] = c
-
-    def sset(self, a, b, c):
-        try:
-            self.world[a][b] = c if self._get(a,b) is 0 else self._get(a, b)
-        except TypeError:
-            print(point(a, b))
     def tget(self):
         values = []
         for i in range(self.size):
@@ -157,8 +152,8 @@ class DS:
                 self._tot(self._add(rm, x, y)))
 
     def diamondsquare(self, l, t, r, b, d):
-        x = self._mid(l, r)
-        y = self._mid(t, b)
+        x = self.mid(l, r)
+        y = self.mid(t, b)
 
         cm = self._sum(x, y, l, t, r, b, 0)
         self.sset(x, y, self._int(cm - self._mul(d, 2))) 
@@ -217,7 +212,7 @@ class DS:
                         ids.rectangle(
                             [x * 8, y * 8, x * 8 + 8, y * 8 + 8], 
                             '#0000ff')                   
-        img.save('diamondsquarefloat.png')
+        img.save('diamondsquareflat.png')
 
 if __name__ == "__main__":
     dsf = DS(size=124, n=50)

@@ -10,7 +10,6 @@ class DS:
         self.power = power
         self.value = maxa/2.0
         self.offset = offset
-        self.center = size/2
         self.map = [[0.0 for j in range(self.size)] for i in range(self.size)]
 
     def _mid(self, a, b): 
