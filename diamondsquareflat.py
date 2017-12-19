@@ -1,48 +1,64 @@
 import random
-import numpy
 import pprint
+import copy
 from collections import namedtuple
+from PIL import Image, ImageDraw
+from heightmap import steps_9_way
+'''
+So for every map algorithm it returns a value between 0 - 1.
+This is achieved by letting each algorithm run its function and
+then at the end of the process, we normalize the map to create a 
+an array of floats between those two numbers.
+This allows for a standarization of all map algorithms to use 
+the same functions in the inherited Map class which are created
+to act on an array consisiting of these float values. Any array
+holding values outside of 0 to 1 will see errors in the final
+product
+'''
 
 point = namedtuple("Point", ("a", "b"))
 
 class DS:
     """ Returns a list of lists of size (2^n)+1 of values ranging from 0-255 """
-    def __init__(self, size=65, maxa=255, seed=random.randint(0,9999), offset=2.0, power=-0.75):
+    def __init__(self, size=65, maxa=255, offset=2.0, power=-0.75, n=50, seed=None):
         random.seed(seed)
-        self.seed = seed
+        self.seed = seed if seed else random.randint(0, 99999)
         self.size = size
-        self.value = maxa/2
-        self.center = size / 2
+        self.value = maxa // 2
+        self.center = size // 2
         self.offset = offset
         self.power = power
-        self.map = [[0 for j in range(self.size)] for i in range(self.size)]
+        self.world = [[0 for j in range(self.size)] for i in range(self.size)]
+        self.num = 50
+        self.initialize()
 
-    def initialize(self, n, a=0, b=0, c=0, d=0):
+    def initialize(self, a=0, b=0, c=0, d=0):
         """@Parameters (n: ?, a=NW, b=SW, c=NE, d=SE)"""
         # a b
         # d c
         def setpoint(x, y, v=0): 
             self.sset(x, y, random.randint(0, self.value) if v else v)
-        self.num = n
+
         s = self.size-1 # set to list coordinates        
         setpoint(0, 0, a)
         setpoint(0, s, b)
         setpoint(s, 0, d)
         setpoint(s, s, c)
+
         self.diamondsquare(0, 0, s, s, self.value)
         
     def _mid(self, a, b): 
-        return (a+b)/2
+        return (a + b) // 2
 
     def _get(self, a, b): 
-        return self.map[a][b]
+        return self.world[a][b]
 
     def _set(self, a, b, c): 
-        self.map[a][b] = c
+        self.world[a][b] = c
 
     def sset(self, a, b, c):
         try:
-            self.map[a][b] = c if self._get(a,b) is 0 else self._get(a, b)
+            self.world[a][b] = c if self._get(a,b) is 0 else self._get(a, b)
         except TypeError:
             print(point(a, b))
     def tget(self):
@@ -53,18 +69,18 @@ class DS:
                     values.append(self._get(i,j))
         return values
     def lget(self):
-        return self.map[0]
+        return self.world[0]
     def rget(self):
-        return self.map[self.size-1]
+        return self.world[self.size-1]
     def tset(self, l):
         for i in range(self.size):
             for j in range(self.size):
                 if j == 0:
-                    self.map[i][j] = l[i]
+                    self.world[i][j] = l[i]
     def lset(self, l):
-        self.map[0] = l
+        self.world[0] = l
     def rset(self, l):
-        self.map[self.size-1] = l
+        self.world[self.size-1] = l
     def _add(self, l, x, y):
         l.extend([self._get(x,y)]*self.num)
         return l
@@ -101,17 +117,30 @@ class DS:
                 self.min = self._get(i,j) if self._get(i,j) < self.min else self.min
                 self.max = self._get(i,j) if self._get(i,j) > self.max else self.max
 
-    def normalize(self, val):
-        self.minmax()
-        def norm(x):
-                # print('x', x, x-self.min, float(self.max-self.min), (x-self.min)/float(self.max-self.min))
-                return self._int((x-self.min)/float(self.max-self.min)*val)
+    def neighbors(self, x, y):
+        return [(x + step[0], y + step[1]) for step in steps_9_way()]
 
-        copy = numpy.copy(self.map)
-        for i in range(self.size):
-            for j in range(self.size):
-                copy[i][j] = norm(float(self._get(i, j)))
-        return copy
+    def smooth(self):
+        world = [[0 for _ in range(self.size)] for _ in range(self.size)]
+        for y in range(self.size):
+            for x in range(self.size):
+                num = 0
+                value = 0
+                for xx, yy in self.neighbors(x, y):
+                    try:
+                        value += self.world[yy][xx]
+                        num += 1
+                    except IndexError:
+                        pass
+                world[y][x] = value//num
+        self.world = world
+
+    def normalize(self):
+        world = copy.deepcopy(self.world)
+        for y in range(self.size):
+            for x in range(self.size):
+                world[y][x] = self._normalize(self.world[y][x])
+        self.world = world
 
     def _sum(self, x, y, l ,t, r, b, v):
         if not v:
@@ -147,6 +176,49 @@ class DS:
             self.diamondsquare(l, y, x, b, d)
             self.diamondsquare(x, y, r, b, d)
 
+    def integer_to_hex(self, value):
+        value = hex(value).split('x')[1]
+        if len(value) < 2:
+            value = "0" + value
+        return '#' + value * 3
+
+    def _normalize(self, value):
+        return int((value - self.min) / (self.max - self.min) * 250)
+
+    def output_image(self, colored=False):
+        self.smooth()
+        self.normalize()
+        self.minmax()
+        
+        img = Image.new('RGB', (self.size * 8, self.size * 8))
+        ids = ImageDraw.Draw(img)
+
+        if colored:
+            for y in range(self.size):
+                for x in range(self.size):
+                    value = self.integer_to_hex(self._normalize(self.world[y][x]))
+                    ids.rectangle([x * 8, y * 8, x * 8 + 8, y * 8 + 8], value)
+        else:
+            for y in range(self.size):
+                for x in range(self.size):
+                    if world[y][x] > 200:
+                        ids.rectangle(
+                            [x * 8, y * 8, x * 8 + 8, y * 8 + 8], 
+                            '#ffffff')
+                    elif 150 < world[y][x] < 200:
+                        ids.rectangle(
+                            [x * 8, y * 8, x * 8 + 8, y * 8 + 8], 
+                            '#808080')
+                    elif 100 < world[y][x] < 150:
+                        ids.rectangle(
+                            [x * 8, y * 8, x * 8 + 8, y * 8 + 8], 
+                            '#00FF00')
+                    else:
+                        ids.rectangle(
+                            [x * 8, y * 8, x * 8 + 8, y * 8 + 8], 
+                            '#0000ff')                   
+        img.save('diamondsquarefloat.png')
+
 if __name__ == "__main__":
-    dsf = DS()
-    dsf.initialize(50)
+    dsf = DS(size=124, n=50)
+    dsf.output_image(True)
