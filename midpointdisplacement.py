@@ -5,38 +5,9 @@ import graph
 import color
 import random
 import movement
+from drunkards import Map
 from bearlibterminal import terminal
-class MPD:
-    def __init__(self, size, height):
-        self.world = [height//2 for i in range(size)]
-
-    def subdivide(self, x, y, z):
-        if y-x <= 1:
-            return
-        self.world[x] = random.randint(0, 50-z)
-        self.world[y] = random.randint(0, 50-z)
-        self.subdivide(x, (x+y)//2, z+1)
-        self.subdivide((x+y)//2, y, z+1)
-
-    def serialdivide(self, x, y, z=None):
-        if z == None:
-            z = len(self.world)//2
-        #print(x, y, z)
-        if (y-x) <= 1 or x == y or z == 0:
-            return
-        #print(x, y, z)
-        if x % len(self.world) == 0:
-            self.world[x] = random.randint(0, 250)
-        if y % len(self.world) == 0:
-            self.world[y] = random.randint(0, 250)
-        self.world[x] = self.world[x-1]+random.randint(-5, 5)
-        self.world[y] = self.world[(y+1)%len(self.world)]+random.randint(-5, 5)
-        self.serialdivide(x+1, y-1, z-1)
-
-    def smooth(self, size):
-        #print('smoothing')
-        for x in range(size):
-            self.world[x] = (self.world[x-1]+self.world[x]+self.world[(x+1)%(size)])//3
+from mpd_one_dim import setup, key_handle_exit
 
 class MPD2D:
     def __init__(self, x, y):
@@ -153,3 +124,4 @@ class MPD2D:
 
 if __name__ == "__main__":
     width, height = 80, 25
+    setup(width, height)

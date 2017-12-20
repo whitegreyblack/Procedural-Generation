@@ -1,12 +1,22 @@
 import math
 import color
 import random
-import randomfill
-from mpd_one_dim import setup, key_handle_exit
 from bearlibterminal import terminal
 from PIL import Image, ImageDraw
 
 ''' map functions '''
+def steps_2_horizontal(inclusive=False):
+    steps = set()
+    for i in range(-1, 2, 1 if inclusive else 2):
+        steps.add((i, 0))
+    return steps
+
+def steps_3_horizontal(inclusive=False):
+    steps = set()
+    for i in range(-1, 2):
+        steps.add((i, 0))
+    return steps
+
 def steps_4_diagonal():
     steps = set()
     for i in range(-1, 2, 2):
@@ -21,20 +31,22 @@ def steps_4_lateral():
         steps.add((i, 0))
     return steps
 
-def steps_8_way():
+def steps_8_way(inclusive=False):
     steps = set()
     for i in range(-1, 2):
         for j in range(-1, 2):
-            if (i, j) != (0, 0):
+            if (i, j) == (0, 0) and inclusive:
                 steps.add((i, j))
     return steps
 
-def steps_9_way():
-    steps = set()
-    for i in range(-1, 2):
-        for j in range(-1, 2):
-            steps.add((i, j))
-    return steps
+def setup(x, y):
+    terminal.open()
+    terminal.set(f'window: size={x}x{y}')
+    terminal.refresh()
+
+def key_handle_exit(key):
+    if key in (terminal.TK_Q, terminal.TK_ESCAPE, terminal.TK_CLOSE):
+        return True
 
 def term_loop(m):
     output_flag = False
@@ -66,11 +78,7 @@ def term_loop(m):
 class Map:
     def __init__(self, width, height, seed=None):
         self.width, self.height = width, height
-
-        self.world = self.create_base()
-        self.world_normal = self.create_base()
-        self.world_colored = self.create_base()
-
+        self.max, self.min = 0, 0
         self.seed = seed if seed else random.randint(0, 99999)
         random.seed(self.seed)
 
@@ -92,8 +100,17 @@ class Map:
                 self.world[y][x] *= other.world[y][x]
         return self       
 
-    def create_base(self):
+    def base_single_flat(self):
+        return [0 for _ in range(self.width)]
+
+    def base_double_flat(self):
         return [[0 for _ in range(self.width)] for _ in range(self.height)]
+
+    def base_single_float(self):
+        return [random.random() * 2 - 1 for _ in range(self.width)]
+
+    def base_double_float(self):
+        return [[random.random() * 2 - 1 for _ in range(self.width)] for _ in range(self.height)]
 
     def check_bounds(self, x, y):
         return 0 <= x < self.width and 0 <= y < self.height
@@ -101,17 +118,17 @@ class Map:
     def random_point(self):
         return random.randint(0, self.width - 1), random.randint(0, self.height - 1)
 
-    def neighbors_inclusive(self, x, y):
-        return [(x + step[0], y + step[1]) for step in steps_9_way()]    
+    def neighbors(self, x, y, inclusive=False):
+        return [(x + step[0], y + step[1]) for step in steps_8_way(inclusive)]    
 
-    def neighbors_exclusive(self, x, y):
-        return [(x + step[0], y + step[1]) for step in steps_8_way()]    
-
-    def neighbors_lateral(self, x, y):
+    def neighbors_lateral(self, x, y, inclusive=False):
         return [(x + step[0], y + step[1]) for step in steps_4_lateral()]    
 
-    def neighbors_diagonal(self, x, y):
+    def neighbors_diagonal(self, x, y, inclusive=False):
         return [(x + step[0], y + step[1]) for step in steps_4_diagonal()]    
+
+    def neighbors_horizontal(self, x, inclusive=False):
+        return [x + step[0] for step in steps_2_horizontal(inclusive=inclusive)]
 
     def generate(self):
         raise NotImplementedError('Use child map class instead')
@@ -127,13 +144,21 @@ class Map:
         self.max = heights[0]
         self.min = heights[-1]
 
+    def minmax_single(self):
+        height = set()
+        for x in range(self.width):
+            if self.world[x] not in height:
+                height.add(self.world[x])
+        heights = sorted(height, reverse=True)
+        self.max = heights[0]
+        self.min = heights[-1]
+
     def smooth(self):
-        world = [[0 for _ in range(self.width)] for _ in range(self.height)]
+        world = self.base_single_flat()
         for y in range(self.height):
             for x in range(self.width):
-                num = 0
-                value = 0
-                for xx, yy in self.neighbors_inclusive(x, y):
+                num, value = 0, 0
+                for xx, yy in self.neighbors(x, y, inclusive=True):
                     try:
                         value += self.world[yy][xx]
                         num += 1
@@ -141,6 +166,21 @@ class Map:
                         pass
                 world[y][x] = value / num
         self.world = world
+
+    def smooth_single(self, x1=None, x2=None):
+        start, end = x1 if x1 else 0, x2 if x2 else len(self.world)
+        world = self.base_single_flat()
+        for x in range(start, end):
+            num, value = 0, 0
+            for xx in self.neighbors_horizontal(x, inclusive=True):
+                try:
+                    value += self.world[xx]
+                    num += 1
+                except IndexError:
+                    pass
+
+            world[x] = value / num
+        self.world = world        
 
     def normalize(self, norm=1):
         self.maxmin()
@@ -212,10 +252,42 @@ class Map:
                     [x * 8, y * 8, x * 8 + 8, y * 8 + 8], world[y][x][1])
         img.save(self.__class__.__name__ + '.png')        
 
+class MPD(Map):
+    def __init__(self, width, height, noise, seed=None):
+        super().__init__(width=width, height=height, seed=seed)
+        self.noise = noise
+        self.world = self.base_single_float()
+
+    def subdivide(self, x1, x2, delta):
+        if x1 + 1 == x2:
+            return
+
+        x3 = (x1 + x2) // 2
+        dy = (random.random() * 2 - 1) * delta
+
+        # midpoint
+        self.world[x3] = (self.world[x1] + self.world[x2] + self.world[x3]) / 3 + dy
+
+        self.subdivide(x1, x3, delta * self.noise)
+        self.subdivide(x3, x2, delta * self.noise)
+
+    def serialdivide(self, x, end, delta):
+        if x == end:
+            return
+
+        dy = (random.random() * 2 - 1) * delta
+        self.world[x + 1] = (self.world[x] + self.world[x + 2]) / 2 + dy
+
+        self.subdivide(x + 1, end, delta * self.noise)
+
 class Drunkards(Map):
     def __init__(self, width, height, limit, seed=None):
-        super().__init__(width, height, seed)
+        super().__init__(width=width, height=height, seed=seed)
         self.limit = int(height * width * limit)
+
+        self.world = self.base_double_flat()
+        self.world_normal = self.base_double_flat()
+        self.world_colored = self.base_double_flat()
 
     def generate(self): 
         """ Returns map filled with drunkards height algo """
@@ -242,6 +314,11 @@ class DrunkardsPeaks(Map):
         """Drunkards algorithm with peaks"""
         super().__init__(width, height, seed)
         self.limit = int(width * height * limit)
+
+        self.world = self.base_double_flat()
+        self.world_normal = self.base_double_flat()
+        self.world_colored = self.base_double_flat()
+
         self.peaks = [(
             random.randint(width // 2 - width // 4, width // 2 + width // 4), 
             random.randint(height // 2 - height // 3, height // 2 + height // 3)) 
@@ -266,10 +343,26 @@ class DrunkardsPeaks(Map):
 
         self.normalize()
 
-def test_drunkards():
-    width, height = 160, 50
-    setup(width, height)
+def test_midpoint_single():
+    line = MPD(width=width, height=height, noise=.7)
+    line.subdivide(0, width-1, 50)
+    # line.serialdivide(0, width - 1, 50)
+    line.minmax_single()
 
+    total = line.max - line.min
+    print(total, line.max, line.min)
+    while True:
+        terminal.clear()
+        for i in range(width):
+            terminal.puts(i, int(round((line.world[i] - line.min)) / (total) * height), '.')
+        terminal.refresh()
+        key = terminal.read()
+        if key_handle_exit(key):
+            break
+        elif key == terminal.TK_S:
+            line.smooth_single()
+
+def test_drunkards():
     m = Drunkards(width, height, .45)
     m.generate()
     # m.smooth()
@@ -280,9 +373,6 @@ def test_drunkards():
     term_loop(m)
 
 def test_drunkards_peaks():
-    width, height = 160, 50
-    setup(width, height)
-
     m = DrunkardsPeaks(width, height, .3, 7)
     m.generate()
     m.normalize()
@@ -291,9 +381,6 @@ def test_drunkards_peaks():
     term_loop(m)
 
 def test_combination():
-    width, height = 200, 60
-    setup(width, height)
-    
     m = DrunkardsPeaks(width, height, .45, 13)  
 
     m.generate()
@@ -302,6 +389,9 @@ def test_combination():
     term_loop(m)
 
 if __name__ == "__main__":
+    width, height = 80, 25
+    setup(width, height)
     # test_drunkards()
     # test_drunkards_peaks()
-    test_combination()
+    # test_combination()
+    test_midpoint_single()
