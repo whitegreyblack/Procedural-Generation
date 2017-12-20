@@ -1,3 +1,5 @@
+import os
+import sys
 import math
 import color
 import random
@@ -11,10 +13,10 @@ def steps_2_horizontal(inclusive=False):
         steps.add((i, 0))
     return steps
 
-def steps_3_horizontal(inclusive=False):
+def steps_2_vertical(inclusive=False):
     steps = set()
-    for i in range(-1, 2):
-        steps.add((i, 0))
+    for i in range(-1, 2, 1 if inclusive else 2):
+        steps.add((0, j))
     return steps
 
 def steps_4_diagonal():
@@ -35,13 +37,15 @@ def steps_8_way(inclusive=False):
     steps = set()
     for i in range(-1, 2):
         for j in range(-1, 2):
-            if (i, j) == (0, 0) and inclusive:
+            if (i, j) != (0, 0):
                 steps.add((i, j))
+    if inclusive:
+        steps.add((0, 0))
     return steps
 
 def setup(x, y):
     terminal.open()
-    terminal.set(f'window: size={x}x{y}')
+    terminal.set(f'window: size={x}x{y}, cellsize=8x8')
     terminal.refresh()
 
 def key_handle_exit(key):
@@ -62,10 +66,11 @@ def term_loop(m):
             break
 
         elif key == terminal.TK_A:
-            print('aa')
-            n = DrunkardsPeaks(200, 60, .45, 13)  
+            n = DrunkardsPeaks(m.width, m.height, .45, 15)  
             n.generate()
             m += n
+            m.normalize()
+            m.evaluate()
 
         elif key == terminal.TK_S:
             m.smooth()
@@ -88,6 +93,7 @@ class Map:
         for y in range(self.height):
             for x in range(self.width):
                 self.world[y][x] += other.world[y][x]
+        self.normalize()
         return self
 
     def __imul__(self, other):
@@ -97,8 +103,10 @@ class Map:
             raise ValueError('World Input has different dimensions')
         for y in range(self.height):
             for x in range(self.width):
-                self.world[y][x] *= other.world[y][x]
-        return self       
+                self.world[y][x] += other.world[y][x]
+                self.world[y][x] /= 2
+        self.normalize()
+        return self      
 
     def base_single_flat(self):
         return [0 for _ in range(self.width)]
@@ -154,18 +162,28 @@ class Map:
         self.min = heights[-1]
 
     def smooth(self):
-        world = self.base_single_flat()
+        world = self.base_double_flat()
         for y in range(self.height):
             for x in range(self.width):
                 num, value = 0, 0
                 for xx, yy in self.neighbors(x, y, inclusive=True):
                     try:
-                        value += self.world[yy][xx]
+                        if (xx, yy) == (x, y):
+                            value += self.world[yy][xx]
+                        else:
+                            value += self.world[yy][xx]
                         num += 1
                     except IndexError:
                         pass
                 world[y][x] = value / num
+
+        # for y in range(self.height):
+        #     for x in range(self.width):        
+        #         self.world[y][x] *= world[y][x]      
+        #         self.clamp(self.world[y][x])
+
         self.world = world
+        # assert self.world == world
 
     def smooth_single(self, x1=None, x2=None):
         start, end = x1 if x1 else 0, x2 if x2 else len(self.world)
@@ -196,22 +214,33 @@ class Map:
             return "0" + value
         return value
 
+    def clamp(self, value):
+        return max(0, min(value, 1))
+
     def integer_to_hex(self, value):
         value = self.pad(hex(int(value * 250)).split('x')[1])
         return '#' + value * 3
 
     def integer_to_red(self, value):
         value = self.pad(hex(int(value * 250)).split('x')[1])
-        return' #' + value + '0000'
+        return '#' + value + '0000'
 
     def integer_to_green(self, value):
         value = self.pad(hex(int(value * 250)).split('x')[1])
-        return' #' + '00' + value + '00'
+        return '#' + '00' + value + '00'
 
     def integer_to_blue(self, value):
         value = self.pad(hex(int((1 - value) * 250)).split('x')[1])
-        return' #' + '0000' + value
+        return '#' + '0000' + value
 
+    def integer_to_yellow(self, value):
+        # print(value)
+        value = (1 - value) # .85
+        r = self.pad(hex(int(value * .5 * 250)).split('x')[1])
+        g = self.pad(hex(int(value * .8 * 250)).split('x')[1])
+        b = self.pad(hex(int(value * .3 * 250)).split('x')[1])
+        return '#' + r + g + b
+        
     def split_range(self, number=25):
         return sorted([(self.max * i) / number for i in range(number)], reverse=True)
 
@@ -219,17 +248,21 @@ class Map:
         self.maxmin()
         for y in range(self.height):
             for x in range(self.width):
-                if .6 <= self.world[y][x]:
+                if .4 <= self.world[y][x]:
                     value = ('^', self.integer_to_hex(self.world[y][x]))
                     self.world_colored[y][x] = value
                     self.world_normal[y][x] = value
 
-                elif .3 <= self.world[y][x] < .6:
+                elif .3 <= self.world[y][x] < .4:
                     self.world_colored[y][x] = ('"', self.integer_to_green(self.world[y][x]))
                     self.world_normal[y][x] = ('"', self.integer_to_hex(self.world[y][x]))
 
-                elif .05 <= self.world[y][x] < .3:
-                    self.world_colored[y][x] = ('.', self.integer_to_green(self.world[y][x]))
+                elif 0.15 <= self.world[y][x] < .3:
+                    self.world_colored[y][x] = (',', self.integer_to_green(self.world[y][x]))
+                    self.world_normal[y][x] = (',', self.integer_to_hex(self.world[y][x]))
+
+                elif 0.05 <= self.world[y][x] < .15:
+                    self.world_colored[y][x] = ('.', self.integer_to_yellow(self.world[y][x]))
                     self.world_normal[y][x] = ('.', self.integer_to_hex(self.world[y][x]))
 
                 else:
@@ -242,7 +275,11 @@ class Map:
             for x in range(self.width):
                 yield (x, y, *world[y][x])
 
-    def output_image(self, colored=False):
+    def output_image(self, colored=False, img_id=None):
+        if not os.path.isdir('pics'):
+            print('pics folder does not exist -- Creating "./logs"')
+            os.makedirs('pics')
+
         world = self.world_colored if colored else self.world_normal
         img = Image.new('RGB', (self.width * 8, self.height * 8))
         ids = ImageDraw.Draw(img)
@@ -250,7 +287,9 @@ class Map:
             for x in range(self.width):
                 ids.rectangle(
                     [x * 8, y * 8, x * 8 + 8, y * 8 + 8], world[y][x][1])
-        img.save(self.__class__.__name__ + '.png')        
+        img_name = self.__class__.__name__ + ('_' + img_id if img_id else '') + '.png'
+        print(img_name)
+        img.save('pics/' + img_name)        
 
 class MPD(Map):
     def __init__(self, width, height, noise, seed=None):
@@ -289,6 +328,8 @@ class Drunkards(Map):
         self.world_normal = self.base_double_flat()
         self.world_colored = self.base_double_flat()
 
+        self.generate()
+
     def generate(self): 
         """ Returns map filled with drunkards height algo """
         self.spaces = set()
@@ -314,7 +355,7 @@ class DrunkardsPeaks(Map):
         """Drunkards algorithm with peaks"""
         super().__init__(width, height, seed)
         self.limit = int(width * height * limit)
-
+        # print(width, height, limit, peaks)
         self.world = self.base_double_flat()
         self.world_normal = self.base_double_flat()
         self.world_colored = self.base_double_flat()
@@ -323,6 +364,11 @@ class DrunkardsPeaks(Map):
             random.randint(width // 2 - width // 4, width // 2 + width // 4), 
             random.randint(height // 2 - height // 3, height // 2 + height // 3)) 
                 for _ in range(peaks)]
+
+        for px, py in self.peaks:
+            self.world[py][px] = 5
+
+        self.generate()
 
     def random_point(self):
         # return randint(0, self.x -1), randint(0, self.y - 1)
@@ -343,8 +389,8 @@ class DrunkardsPeaks(Map):
 
         self.normalize()
 
-def test_midpoint_single():
-    line = MPD(width=width, height=height, noise=.7)
+def test_midpoint_single(width, height, noise=.7, seed=None):
+    line = MPD(width=width, height=height, noise=noise, seed=seed)
     line.subdivide(0, width-1, 50)
     # line.serialdivide(0, width - 1, 50)
     line.minmax_single()
@@ -358,29 +404,24 @@ def test_midpoint_single():
         terminal.refresh()
         key = terminal.read()
         if key_handle_exit(key):
+            terminal.close()
             break
         elif key == terminal.TK_S:
             line.smooth_single()
 
-def test_drunkards():
-    m = Drunkards(width, height, .45)
-    m.generate()
-    # m.smooth()
-    # m.smooth()
+def test_drunkards(width, height, noise, seed=None):
+    m = Drunkards(width, height, noise, seed)
     m.normalize()
     m.evaluate()
-
     term_loop(m)
 
-def test_drunkards_peaks():
-    m = DrunkardsPeaks(width, height, .3, 7)
-    m.generate()
+def test_drunkards_peaks(width, height, noise, peaks, seed=None):
+    m = DrunkardsPeaks(width, height, noise, peaks)
     m.normalize()
     m.evaluate()
-
     term_loop(m)
 
-def test_combination():
+def test_combination(width, height, maps):
     m = DrunkardsPeaks(width, height, .45, 13)  
 
     m.generate()
@@ -388,10 +429,49 @@ def test_combination():
 
     term_loop(m)
 
+def test_combination_image(width, height, maps):
+    m = DrunkardsPeaks(width, height, .55, 10)
+    # m = Drunkards(width, height, .45)
+    m.evaluate()  
+    m.output_image(colored=True, img_id='0')
+    n = m
+    n.smooth()
+    n.evaluate()  
+    n.output_image(colored=True, img_id='1')
+    for i in range(maps - 1):
+        # if random.randint(0, 1):
+        #     print('peak')
+        #     n = DrunkardsPeaks(width, height, .2, 1)
+        # else:
+        #     print('drunk')
+        n = Drunkards(width, height, .2)
+        n.smooth()
+        n.evaluate()
+        n.output_image(colored=True, img_id=str((i + 1) * 2))
+        m += n
+        m.evaluate()
+        m.output_image(colored=True, img_id=str((i + 1) * 2 + 1))
+    m.smooth()
+    m.smooth()
+    m.smooth()
+    m.normalize()
+    m.evaluate()
+    m.output_image(colored=True, img_id=str((i + 1) * 2 + 2))
+    m.output_image(colored=False,img_id=str((i + 1) * 2 + 2) + 'c')
+
 if __name__ == "__main__":
-    width, height = 80, 25
-    setup(width, height)
-    # test_drunkards()
-    # test_drunkards_peaks()
-    # test_combination()
-    test_midpoint_single()
+    width, height = 960, 540
+
+    # width, height = 80, 25
+    # setup(width, height)
+
+    # seed = random.randint(0, 99999)
+    # print(seed)
+
+    seed = None
+    # test_drunkards(width, height, .45)
+    # test_drunkards_peaks(width, height, .45, 13, seed)
+    # test_combination(width, height, 3)
+    # test_midpoint_single(width, height, .7)
+
+    test_combination_image(width, height, 3)
