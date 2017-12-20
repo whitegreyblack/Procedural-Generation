@@ -7,7 +7,6 @@ import random
 import movement
 from drunkards import Map
 from bearlibterminal import terminal
-from mpd_one_dim import setup, key_handle_exit
 
 class MPD2D:
     def __init__(self, x, y):
