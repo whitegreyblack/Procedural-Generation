@@ -120,11 +120,24 @@ class Map:
     def base_double_float(self):
         return [[random.random() * 2 - 1 for _ in range(self.width)] for _ in range(self.height)]
 
+    def percentage(self, value, percent):
+        return value * percent
+
     def check_bounds(self, x, y):
         return 0 <= x < self.width and 0 <= y < self.height
+        # x_lb = self.percentage(self.width, .1)
+        # x_hb = self.percentage(self.width, .9)
+        # y_lb = self.percentage(self.height, .1)
+        # y_hb = self.percentage(self.height, .9)
+        # return x_lb <= x < x_hb and y_lb <= y < y_hb
 
     def random_point(self):
-        return random.randint(0, self.width - 1), random.randint(0, self.height - 1)
+        x_lb = self.percentage(self.width, .1)
+        x_hb = self.percentage(self.width, .9)
+        y_lb = self.percentage(self.height, .1)
+        y_hb = self.percentage(self.height, .9)
+        return random.randint(int(x_lb), int(x_hb)) , random.randint(int(y_lb), int(y_hb))
+        # return random.randint(0, self.width - 1), random.randint(0, self.height - 1)
 
     def neighbors(self, x, y, inclusive=False):
         return [(x + step[0], y + step[1]) for step in steps_8_way(inclusive)]    
@@ -169,7 +182,7 @@ class Map:
                 for xx, yy in self.neighbors(x, y, inclusive=True):
                     try:
                         if (xx, yy) == (x, y):
-                            value += self.world[yy][xx]
+                            value += self.world[yy][xx] * 2
                         else:
                             value += self.world[yy][xx]
                         num += 1
@@ -287,7 +300,7 @@ class Map:
             for x in range(self.width):
                 ids.rectangle(
                     [x * 8, y * 8, x * 8 + 8, y * 8 + 8], world[y][x][1])
-        img_name = self.__class__.__name__ + ('_' + img_id if img_id else '') + '.png'
+        img_name = (img_id + '_' if img_id else '') + self.__class__.__name__ + '.png'
         print(img_name)
         img.save('pics/' + img_name)        
 
@@ -360,10 +373,19 @@ class DrunkardsPeaks(Map):
         self.world_normal = self.base_double_flat()
         self.world_colored = self.base_double_flat()
 
+        x_lb = self.percentage(self.width, .3)
+        x_hb = self.percentage(self.width, .7)
+        y_lb = self.percentage(self.height, .3)
+        y_hb = self.percentage(self.height, .7)
+
         self.peaks = [(
-            random.randint(width // 2 - width // 4, width // 2 + width // 4), 
-            random.randint(height // 2 - height // 3, height // 2 + height // 3)) 
-                for _ in range(peaks)]
+            random.randint(int(x_lb), int(x_hb)) , 
+            random.randint(int(y_lb), int(y_hb))) 
+            for _ in range(peaks)]
+        # self.peaks = [(
+        #     random.randint(width // 2 - width // 4, width // 2 + width // 4), 
+        #     random.randint(height // 2 - height // 3, height // 2 + height // 3)) 
+        #         for _ in range(peaks)]
 
         for px, py in self.peaks:
             self.world[py][px] = 5
@@ -430,37 +452,38 @@ def test_combination(width, height, maps):
     term_loop(m)
 
 def test_combination_image(width, height, maps):
-    m = DrunkardsPeaks(width, height, .55, 10)
+    m = DrunkardsPeaks(width, height, .35, 10)
     # m = Drunkards(width, height, .45)
     m.evaluate()  
     m.output_image(colored=True, img_id='0')
-    n = m
-    n.smooth()
-    n.evaluate()  
-    n.output_image(colored=True, img_id='1')
+    # n = m
+    # n.smooth()
+    # n.evaluate()  
+    # n.output_image(colored=True, img_id='1')
     for i in range(maps - 1):
         # if random.randint(0, 1):
         #     print('peak')
-        #     n = DrunkardsPeaks(width, height, .2, 1)
+        # n = DrunkardsPeaks(width, height, .2, 2)
         # else:
         #     print('drunk')
         n = Drunkards(width, height, .2)
-        n.smooth()
         n.evaluate()
         n.output_image(colored=True, img_id=str((i + 1) * 2))
-        m += n
+        m *= n
         m.evaluate()
         m.output_image(colored=True, img_id=str((i + 1) * 2 + 1))
-    m.smooth()
-    m.smooth()
-    m.smooth()
-    m.normalize()
+    m.output_image(colored=False, img_id=str((i + 1) * 2 + 1) + 'c')
+
+    for j in range(3):
+        m.smooth()
+
     m.evaluate()
     m.output_image(colored=True, img_id=str((i + 1) * 2 + 2))
     m.output_image(colored=False,img_id=str((i + 1) * 2 + 2) + 'c')
+    print(m.min)
 
 if __name__ == "__main__":
-    width, height = 960, 540
+    width, height = 480, 270
 
     # width, height = 80, 25
     # setup(width, height)
@@ -474,4 +497,4 @@ if __name__ == "__main__":
     # test_combination(width, height, 3)
     # test_midpoint_single(width, height, .7)
 
-    test_combination_image(width, height, 3)
+    test_combination_image(width, height, 2)
