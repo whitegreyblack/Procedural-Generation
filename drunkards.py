@@ -80,6 +80,48 @@ def term_loop(m):
         elif key == terminal.TK_F:
             output_flag = not output_flag
 
+def constructor(width, height=None, depth=None, value=None, args=None):
+    '''Returns either a 1D, 2D or 3D array depending on height parameter
+    and assigns each value in the array a value passed in as a parameter.
+    The value can also take in arguments passed in as a parameter which 
+    it uses to create the final value in the array
+    '''
+    def determine():
+        '''Helper function for constructor that allows constructor to 
+        calculate the final value that will be returned and placed in 
+        the array
+        '''
+        ret = 0
+        if callable(value):
+            if callable(args):
+                ret = value(args())
+            elif args:
+                ret = value(*args)
+            else:
+                ret = value()
+        elif value:
+            ret = value
+        return ret
+
+    if not width:
+        raise ValueError('Width must be specified')
+
+    if not height and depth:
+        # cannot have height but have depth -- just switch it in that case
+        height, depth = depth, height
+
+    array = None
+    dimensions = sum(map(lambda x: 1 if x else 0, (width, height, depth)))
+    
+    for _ in range(dimensions):
+        if not array:
+            array = [determine() for _ in range(width)]
+        elif isinstance(array[0], int) or isinstance(array[0], float):
+            array = [array for _ in range(height)]
+        else:
+            array = [array for _ in range(depth)]
+    return array
+
 class Map:
     def __init__(self, width, height, seed=None):
         self.width, self.height = width, height
