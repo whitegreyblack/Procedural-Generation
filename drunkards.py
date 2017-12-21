@@ -57,12 +57,28 @@ class Combinations:
     def combinations(combination, inclusive=False):
         steps = set()
         if combination == Combinations.HORIZONTAL:
-            for i in range(-1, 2, 1 if inclusive else 2):
+            for i in range(-1, 2, 2):
                 steps.add((i, 0))
-        else:
-            pass
+        elif combination == Combinations.VERTICAL:
+            for j in range(-1, 2, 2):
+                steps.add((0, j))
+        elif combination == Combinations.DIAGONAL:
+            for i in range(-1, 2, 2):
+                for j in range(-1, 2, 2):
+                    steps.add((i, j))
+        elif combination == Combinations.LATERAL:
+            for i in range(-1, 2, 2):
+                steps.add((0, i))
+                steps.add((i, 0))
+        elif combination == Combinations.ALL:
+            for j in range(-1, 2):
+                for i in range(-1, 2):
+                    if (i, j) != (0, 0):
+                        steps.add((i, j))
+        if inclusive:
+            steps.add((0, 0))
         return steps
-    
+
 def steps_2_horizontal(inclusive=False):
     steps = set()
     for i in range(-1, 2, 1 if inclusive else 2):
