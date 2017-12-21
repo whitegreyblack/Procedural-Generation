@@ -175,3 +175,4 @@ def test_combinations_lateral_exclusive():
     for xx, yy in steps:
         assert x -1 <= x + xx <= x + 1
         assert y -1 <= y + yy <= y + 1
+

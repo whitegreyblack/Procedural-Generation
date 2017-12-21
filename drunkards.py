@@ -5,8 +5,55 @@ import color
 import random
 from bearlibterminal import terminal
 from PIL import Image, ImageDraw
-
 # MAP FUNCTIONS
+def line(start, end):
+    """Bresenham's Line Algo -- returns list of tuples from start and end"""
+
+    # Setup initial conditions
+    x1, y1 = start
+    x2, y2 = end
+    dx = x2 - x1
+    dy = y2 - y1
+
+    # Determine how steep the line is
+    is_steep = abs(dy) > abs(dx)
+
+    # Rotate line
+    if is_steep:
+        x1, y1 = y1, x1
+        x2, y2 = y2, x2
+
+    # Swap start and end points if necessary and store swap state
+    swapped = False
+    if x1 > x2:
+        x1, x2 = x2, x1
+        y1, y2 = y2, y1
+        swapped = True
+
+    # Recalculate differentials
+    dx = x2 - x1
+    dy = y2 - y1
+
+    # Calculate error
+    error = int(dx / 2.0)
+    ystep = 1 if y1 < y2 else -1
+
+    # Iterate over bounding box generating points between start and end
+    y = y1
+    points = []
+    for x in range(x1, x2 + 1):
+        coord = (y, x) if is_steep else (x, y)
+        points.append(coord)
+        error -= abs(dy)
+        if error < 0:
+            y += ystep
+            error += dx
+
+    # Reverse the list if the coordinates were swapped
+    if swapped:
+        points.reverse()
+    return points
+
 
 def constructor(width, height=None, depth=None, value=None, args=None):
     '''Returns either a 1D, 2D or 3D array depending on height parameter
@@ -514,10 +561,37 @@ class DrunkardsPeaksImproved(Map):
 
         self.generate()
    
-class MSP():
+class Node:
+    def __init__(self, node_id, x, y):
+        self.id = node_id
+        self.x, self.y = x, y
+        self.neighbors = {}
+
+    def __str__(self):
+        return f"Node {self.id}: ({self.x}, {self.y})"
+
+    def __repr__(self):
+        return f"Node {self.id}: ({self.x}, {self.y})"
+
+    def distance(self, other):
+        return math.sqrt((other.x - self.x) ** 2 + (other.y - self.y) ** 2)
+
+    def closest(self):
+        if self.neighbors:
+            return min((self.neighbors[k], k) for k in self.neighbors)
+
+    def vertices(self):
+        return set((self.neighbors[k], min(self.id, k), max(self.id, k)) for k in self.neighbors)
+            
+
+class MST():
     '''Takes in list/set of nodes amd returns a minimum spanning tree.'''
-    def __init__(self, nodes, noise=.8):
-        self.nodes = nodes
+    def __init__(self, nodes=None, noise=.8):
+        self.nodes = nodes if nodes else []
+
+    def __repr__(self):
+        return f"MST: nodes: {len(self.nodes)}\n  " + \
+        "\n  ".join([f"{k}, {self.graph[k]}" for k in self.graph])
 
     def run(self):
         '''The algorithm follows minimum spanning tree however there are
@@ -528,7 +602,71 @@ class MSP():
            in their own set.
         3. If more than one group, leads to multiple continents
         '''
-        pass
+        self.mst = set()
+        pq = sorted(self.edges)
+        print('PQ', pq)
+        while pq:
+            d, a, b = pq.pop(0)
+            print(a, ':', self.vertices[a], ',', b, ':', self.vertices[b])
+            if b not in self.vertices[a] and a not in self.vertices[b]:
+                print('adding', b, '->', a, ':', self.vertices[a])
+                self.vertices[a].update(self.vertices[b])
+                for c in self.vertices[a]:
+                    self.vertices[c] = self.vertices[a]
+                    print('UPDATE', c, self.vertices[c])
+                print('adding', a, '->', b, ':', self.vertices[b])
+                self.vertices[b].update(self.vertices[a])
+                for c in self.vertices[b]:
+                    self.vertices[c] = self.vertices[b]
+                    print('UPDATE', c, self.vertices[c])
+                print(a, ':', self.vertices[a], ',', b, ':', self.vertices[b])
+                self.mst.add((a, b))
+            # if len(self.mst) == len(self.nodes) - 1:
+            #     break
+            print()
+
+    def calculate_distances(self):
+        if not self.nodes:
+            raise ValueError('No nodes in graph')
+        for i in self.nodes:
+            for j in self.nodes:
+                if i != j:
+                    i.neighbors[j.id] = i.distance(j)
+
+        self.graph = {node: node.neighbors for node in self.nodes}
+        # for k in self.graph:
+        #     print(k, self.graph[k])
+
+    def node_with_id(self, nid):
+        node = None
+        for n in self.nodes:
+            if n.id == nid:
+                node = n
+        return node
+
+    def add(self, node):
+        self.nodes.append(node)
+
+    def find_all_edges(self):
+        self.edges = {v for node in self.nodes for v in node.vertices()}
+
+    def find_all_vertices(self):
+        self.vertices = {node.id: {node.id} for node in self.nodes}
+
+    def output_terminal(self):
+        setup(80, 25)
+        vertices = set()
+        for n in self.nodes:
+            vertices.add((n.x, n.y))
+            terminal.puts(n.x, n.y, f'[c=red]@[/c]')
+        for a, b in self.mst:
+            na = self.node_with_id(a)
+            nb = self.node_with_id(b)
+            for (x, y) in line((na.x, na.y), (nb.x, nb.y))[1:-1]:
+                if (x, y) not in vertices:
+                    terminal.puts(x, y, f'[c=white].[/c]')
+        terminal.refresh()
+        terminal.read()
 
 def test_midpoint_single(width, height, noise=.7, seed=None):
     line = MPD(width=width, height=height, noise=noise, seed=seed)
