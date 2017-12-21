@@ -97,3 +97,12 @@ def test_constructor_double_no_height_callable_with_args():
     for row in array:
         for val in row:
             assert 0 <= val <= high
+
+def test_combinations_horizontal_inclusive():
+    x, y = (5, 5)
+    comb_type = drunkards.Combinations.HORIZONTAL
+    steps = drunkards.Combinations.combinations(comb_type, inclusive=True)
+    assert len(steps) == 3
+    for xx, yy in steps:
+        assert x - 1 <= x + xx <= x + 1
+        assert y + yy == y

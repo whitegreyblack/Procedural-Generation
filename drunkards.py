@@ -6,7 +6,63 @@ import random
 from bearlibterminal import terminal
 from PIL import Image, ImageDraw
 
-''' map functions '''
+# MAP FUNCTIONS
+
+def constructor(width, height=None, depth=None, value=None, args=None):
+    '''Returns either a 1D, 2D or 3D array depending on height parameter
+    and assigns each value in the array a value passed in as a parameter.
+    The value can also take in arguments passed in as a parameter which 
+    it uses to create the final value in the array
+    '''
+    def determine():
+        '''Helper function for constructor that allows constructor to 
+        calculate the final value that will be returned and placed in 
+        the array
+        '''
+        ret = 0
+        if callable(value):
+            if callable(args):
+                ret = value(args())
+            elif args:
+                ret = value(*args)
+            else:
+                ret = value()
+        elif value:
+            ret = value
+        return ret
+
+    if not width:
+        raise ValueError('Width must be specified')
+
+    if not height and depth:
+        # cannot have height but have depth -- just switch it in that case
+        height, depth = depth, height
+
+    array = None
+    dimensions = sum(map(lambda x: 1 if x else 0, (width, height, depth)))
+    
+    for _ in range(dimensions):
+        if not array:
+            array = [determine() for _ in range(width)]
+        elif isinstance(array[0], int) or isinstance(array[0], float):
+            array = [array for _ in range(height)]
+        else:
+            array = [array for _ in range(depth)]
+    return array
+
+class Combinations:
+    HORIZONTAL, VERTICAL, DIAGONAL, LATERAL, ALL = range(5)
+
+    @staticmethod
+    def combinations(combination, inclusive=False):
+        steps = set()
+        if combination == Combinations.HORIZONTAL:
+            for i in range(-1, 2, 1 if inclusive else 2):
+                steps.add((i, 0))
+        else:
+            pass
+        return steps
+    
 def steps_2_horizontal(inclusive=False):
     steps = set()
     for i in range(-1, 2, 1 if inclusive else 2):
@@ -15,7 +71,7 @@ def steps_2_horizontal(inclusive=False):
 
 def steps_2_vertical(inclusive=False):
     steps = set()
-    for i in range(-1, 2, 1 if inclusive else 2):
+    for j in range(-1, 2, 1 if inclusive else 2):
         steps.add((0, j))
     return steps
 
@@ -79,48 +135,6 @@ def term_loop(m):
 
         elif key == terminal.TK_F:
             output_flag = not output_flag
-
-def constructor(width, height=None, depth=None, value=None, args=None):
-    '''Returns either a 1D, 2D or 3D array depending on height parameter
-    and assigns each value in the array a value passed in as a parameter.
-    The value can also take in arguments passed in as a parameter which 
-    it uses to create the final value in the array
-    '''
-    def determine():
-        '''Helper function for constructor that allows constructor to 
-        calculate the final value that will be returned and placed in 
-        the array
-        '''
-        ret = 0
-        if callable(value):
-            if callable(args):
-                ret = value(args())
-            elif args:
-                ret = value(*args)
-            else:
-                ret = value()
-        elif value:
-            ret = value
-        return ret
-
-    if not width:
-        raise ValueError('Width must be specified')
-
-    if not height and depth:
-        # cannot have height but have depth -- just switch it in that case
-        height, depth = depth, height
-
-    array = None
-    dimensions = sum(map(lambda x: 1 if x else 0, (width, height, depth)))
-    
-    for _ in range(dimensions):
-        if not array:
-            array = [determine() for _ in range(width)]
-        elif isinstance(array[0], int) or isinstance(array[0], float):
-            array = [array for _ in range(height)]
-        else:
-            array = [array for _ in range(depth)]
-    return array
 
 class Map:
     def __init__(self, width, height, seed=None):
@@ -194,6 +208,8 @@ class Map:
         return [x + step[0] for step in steps_2_horizontal(inclusive=inclusive)]
 
     def generate(self):
+        self.world_colored = None
+        self.world_normal = None
         raise NotImplementedError('Use child map class instead')
 
     def maxmin(self):
@@ -452,6 +468,51 @@ class DrunkardsPeaks(Map):
             self.spaces.add((rx, ry))
 
         self.normalize()
+
+class DrunkardsPeaksImproved(Map):
+    def __init__(self, width, height, limit, peaks, seed=None):
+        """Drunkards algorithm with peaks"""
+        super().__init__(width, height, seed)
+        self.limit = int(width * height * limit)
+        # print(width, height, limit, peaks)
+        self.world = self.base_double_flat()
+        self.world_normal = self.base_double_flat()
+        self.world_colored = self.base_double_flat()
+
+        x_lb = self.percentage(self.width, .3)
+        x_hb = self.percentage(self.width, .7)
+        y_lb = self.percentage(self.height, .3)
+        y_hb = self.percentage(self.height, .7)
+
+        self.peaks = [(
+            random.randint(int(x_lb), int(x_hb)) , 
+            random.randint(int(y_lb), int(y_hb))) 
+            for _ in range(peaks)]
+        # self.peaks = [(
+        #     random.randint(width // 2 - width // 4, width // 2 + width // 4), 
+        #     random.randint(height // 2 - height // 3, height // 2 + height // 3)) 
+        #         for _ in range(peaks)]
+
+        for px, py in self.peaks:
+            self.world[py][px] = 5
+
+        self.generate()
+   
+class MSP():
+    '''Takes in list/set of nodes amd returns a minimum spanning tree.'''
+    def __init__(self, nodes, noise=.8):
+        self.nodes = nodes
+
+    def run(self):
+        '''The algorithm follows minimum spanning tree however there are
+        several conditions that will be checked during the iterations.
+
+        1. If the nodes are too far apart, will not connect
+        2. If graph is not completely connected, will return all groups
+           in their own set.
+        3. If more than one group, leads to multiple continents
+        '''
+        pass
 
 def test_midpoint_single(width, height, noise=.7, seed=None):
     line = MPD(width=width, height=height, noise=noise, seed=seed)
