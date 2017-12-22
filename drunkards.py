@@ -638,7 +638,7 @@ class MST():
         '''
         self.mst = set()
         pq = sorted(self.edges)
-        # print('PQ', pq)
+        print('PQ', pq)
         while pq:
             d, a, b = pq.pop(0)
             # if d >= 15:
@@ -657,11 +657,13 @@ class MST():
                     # print('UPDATE', c, self.vertices[c])
                 # print(a, ':', self.vertices[a], ',', b, ':', self.vertices[b])
                 self.mst.add((a, b))
-
                 if len(self.mst) == len(self.nodes) - 1:
                     break
 
-        for i in range(5):
+        # more = int(len(pq) * .01)
+        more = int(len(self.nodes) * .3)
+        print(more)
+        for i in range(min(more, len(pq))):
             d, a, b = pq.pop(0)
             self.mst.add((a, b))
             # if len(self.mst) == len(self.nodes) - 1:
@@ -709,6 +711,9 @@ class MST():
                     terminal.puts(x, y, f'[c=white].[/c]')
         terminal.refresh()
         terminal.read()
+
+    def output_post_processing(self, line=line):
+        pass
 
 def test_midpoint_single(width, height, noise=.7, seed=None):
     line = MPD(width=width, height=height, noise=noise, seed=seed)
