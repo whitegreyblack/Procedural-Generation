@@ -1,4 +1,4 @@
-from drunkards import MST, Node
+from drunkards import MST, Node, line, setup
 from random import randint
 from math import sqrt
 def test_mst_double():
@@ -9,25 +9,27 @@ def test_mst_double():
     assert len(mst.nodes) == 2
 
 if __name__ == "__main__":
-    print('MST TESTS')
+    width, height = 160, 88
+    low, high = .15, .85
+    setup(width, height)
     mst = MST()
     points = set()
-    for i in range(10):
-        x, y = randint(0, 80), randint(0, 25)
+    for i in range(100):
+        x, y = randint(int(width * low), int(width * high)), randint(int(height * low), int(height * high))
         while (x, y) in points:
-            x, y = randint(0, 80), randint(0, 25)
+            x, y = randint(int(width * low), int(width * high)), randint(int(height * low), int(height * high))
         mst.add(Node(i, x, y))
 
     mst.calculate_distances()
-    print(mst)
+    # print(mst)
     # for node in mst.nodes:
     #     print(node.vertices())
     # for node in mst.nodes:
     #     print(node.closest())
     mst.find_all_edges()
-    print('E: ', mst.edges)
+    # print('E: ', mst.edges)
     mst.find_all_vertices()
-    print('V: ', mst.vertices)
+    # print('V: ', mst.vertices)
     mst.run()
-    print(mst.mst)
+    # print(mst.mst)
     mst.output_terminal()

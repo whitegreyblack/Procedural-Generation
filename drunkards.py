@@ -604,26 +604,26 @@ class MST():
         '''
         self.mst = set()
         pq = sorted(self.edges)
-        print('PQ', pq)
+        # print('PQ', pq)
         while pq:
             d, a, b = pq.pop(0)
-            print(a, ':', self.vertices[a], ',', b, ':', self.vertices[b])
+            # print(a, ':', self.vertices[a], ',', b, ':', self.vertices[b])
             if b not in self.vertices[a] and a not in self.vertices[b]:
-                print('adding', b, '->', a, ':', self.vertices[a])
+                # print('adding', b, '->', a, ':', self.vertices[a])
                 self.vertices[a].update(self.vertices[b])
                 for c in self.vertices[a]:
                     self.vertices[c] = self.vertices[a]
-                    print('UPDATE', c, self.vertices[c])
-                print('adding', a, '->', b, ':', self.vertices[b])
+                    # print('UPDATE', c, self.vertices[c])
+                # print('adding', a, '->', b, ':', self.vertices[b])
                 self.vertices[b].update(self.vertices[a])
                 for c in self.vertices[b]:
                     self.vertices[c] = self.vertices[b]
-                    print('UPDATE', c, self.vertices[c])
-                print(a, ':', self.vertices[a], ',', b, ':', self.vertices[b])
+                    # print('UPDATE', c, self.vertices[c])
+                # print(a, ':', self.vertices[a], ',', b, ':', self.vertices[b])
                 self.mst.add((a, b))
             # if len(self.mst) == len(self.nodes) - 1:
             #     break
-            print()
+            # print()
 
     def calculate_distances(self):
         if not self.nodes:
@@ -653,8 +653,7 @@ class MST():
     def find_all_vertices(self):
         self.vertices = {node.id: {node.id} for node in self.nodes}
 
-    def output_terminal(self):
-        setup(80, 25)
+    def output_terminal(self, line=line):
         vertices = set()
         for n in self.nodes:
             vertices.add((n.x, n.y))
