@@ -5,7 +5,41 @@ import color
 import random
 from bearlibterminal import terminal
 from PIL import Image, ImageDraw
-# MAP FUNCTIONS
+# MAP FUNCTIONS\
+def lpath(b1, b2):
+    # x1, y1 = center(b1)
+    # x2, y2 = center(b2)
+    x1, y1 = b1
+    x2, y2 = b2
+
+    # check if xs are on the same axis -- returns a vertical line
+    if x1 == x2 or y1 == y2:
+        return line((x1, y1), (x2, y2))
+
+    # # check if points are within x bounds of each other == returns the midpoint vertical line
+    # elif b2.x1 <= x1 < b2.x2 and b1.x1 <= x2 < b1.x2:
+    #     x = (x1+x2)//2
+    #     return line((x, y1), (x, y2))
+
+    # # check if points are within y bounds of each other -- returns the midpoint horizontal line
+    # elif b2.y1 <= y1 < b2.x2 and b1.y1 <= y2 < b2.y2:
+    #     y = (y1+y2)//2
+    #     return line((x1, y), (x2, y))
+
+    else:
+        # we check the slope value between two boxes to plan the path
+        slope = abs((max(y1, y2) - min(y1, y2))/((max(x1, x2) - min(x1, x2)))) <= 1.0
+    
+        # low slope -- go horizontal
+        if slope:
+            # width is short enough - make else zpath
+            return line((x1, y1), (x1, y2)) \
+                + line((x1, y2), (x2, y2))
+
+        # high slope -- go vertical
+        else:
+            return line((x1, y1), (x2, y1)) + line((x2, y1), (x2, y2))
+
 def line(start, end):
     """Bresenham's Line Algo -- returns list of tuples from start and end"""
 
@@ -607,6 +641,8 @@ class MST():
         # print('PQ', pq)
         while pq:
             d, a, b = pq.pop(0)
+            # if d >= 15:
+            #     break
             # print(a, ':', self.vertices[a], ',', b, ':', self.vertices[b])
             if b not in self.vertices[a] and a not in self.vertices[b]:
                 # print('adding', b, '->', a, ':', self.vertices[a])
@@ -621,6 +657,13 @@ class MST():
                     # print('UPDATE', c, self.vertices[c])
                 # print(a, ':', self.vertices[a], ',', b, ':', self.vertices[b])
                 self.mst.add((a, b))
+
+                if len(self.mst) == len(self.nodes) - 1:
+                    break
+
+        for i in range(5):
+            d, a, b = pq.pop(0)
+            self.mst.add((a, b))
             # if len(self.mst) == len(self.nodes) - 1:
             #     break
             # print()
