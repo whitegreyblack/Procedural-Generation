@@ -617,6 +617,15 @@ class Node:
     def vertices(self):
         return set((self.neighbors[k], min(self.id, k), max(self.id, k)) for k in self.neighbors)
             
+class Room(Node):
+    def __init__(self, node_id, x, y, width, height):
+        super().__init__(node_id, x, y):
+        self.width, self.height = width, height
+        x1, x2, y1, y2 = self.x - width//2, self.x + width//2 + 1, self.y - height//2, self.y + height//2 + 1
+        self.top_left = (x1, y1)
+        self.top_right = (x1, y2)
+        self.bot_left = (x2, y1)
+        self.bot_right = (x2, y2)
 
 class MST():
     '''Takes in list/set of nodes amd returns a minimum spanning tree.'''
