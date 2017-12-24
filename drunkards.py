@@ -627,6 +627,23 @@ class Room(Node):
         self.bot_left = (x2, y1)
         self.bot_right = (x2, y2)
 
+    def points(self):
+        for j in range(y1, y2):
+            for i in range(x1, x2):
+                yield (i, j)
+
+    def corners(self):
+        return [self.top_left, self.top_right, self.bot_left, self.bot_right]
+    
+    def random_point(self):
+        return choice(list(self.points))
+
+    def random_wall_point(self):
+        return 0
+
+    def random_floor_point(self):
+        return 0
+
 class MST():
     '''Takes in list/set of nodes amd returns a minimum spanning tree.'''
     def __init__(self, nodes=None, noise=.8):

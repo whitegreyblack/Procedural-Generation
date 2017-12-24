@@ -1,4 +1,4 @@
-from drunkards import MST, Node, line, setup
+from drunkards import MST, Node, line, setup, lpath
 from random import randint
 from math import sqrt
 def test_mst_double():
@@ -10,7 +10,7 @@ def test_mst_double():
 
 if __name__ == "__main__":
     width, height = 160, 88
-    low, high = .15, .85
+    low, high = .05, .95
     setup(width, height)
     mst = MST()
     points = set()
@@ -18,6 +18,9 @@ if __name__ == "__main__":
         x, y = randint(int(width * low), int(width * high)), randint(int(height * low), int(height * high))
         while (x, y) in points:
             x, y = randint(int(width * low), int(width * high)), randint(int(height * low), int(height * high))
+        for j in range(-2, 3):
+            for k in range(-2, 3):
+                points.add((x + k, y + j))
         mst.add(Node(i, x, y))
 
     mst.calculate_distances()
@@ -32,4 +35,4 @@ if __name__ == "__main__":
     # print('V: ', mst.vertices)
     mst.run()
     # print(mst.mst)
-    mst.output_terminal()
+    mst.output_terminal(line=lpath)
