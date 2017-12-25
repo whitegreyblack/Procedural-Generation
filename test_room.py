@@ -17,3 +17,6 @@ def test_room_random_wall():
 
 def test_room_random_floor():
     pass
+
+def test_room_color():
+    pass

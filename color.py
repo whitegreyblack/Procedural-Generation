@@ -1,4 +1,37 @@
 # COLOR FUNCTIONS
+class Color:
+    def __init__(self, r=None, g=None, b=None):
+        self.color = (r, g, b)
+    
+    @property
+    def color(self):
+        return self.__color
+
+    @color.setter
+    def color(self, rgb):
+        r, g, b = rgb
+        r = r if r else 0
+        g = g if g else 0
+        b = b if b else 0
+        self.__color = combine_hex(
+                        to_hex(r), 
+                        to_hex(g), 
+                        to_hex(b))
+
+def combine_hex(r, g, b):
+    return '#' + r + g + b
+
+def pad(value):
+    if len(value) < 2:
+        return "0" + value
+    return value
+
+def to_hex(value):
+    return pad(hex(int(value)).split('x')[1])
+
+def clamp(value):
+    return max(0, min(value, 1))
+
 def lerp(x, y, t):
     return int(round(x + t * (y-x)))
 

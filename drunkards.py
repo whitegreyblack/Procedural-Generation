@@ -160,42 +160,6 @@ class Combinations:
             steps.add((0, 0))
         return steps
 
-def steps_2_horizontal(inclusive=False):
-    steps = set()
-    for i in range(-1, 2, 1 if inclusive else 2):
-        steps.add((i, 0))
-    return steps
-
-def steps_2_vertical(inclusive=False):
-    steps = set()
-    for j in range(-1, 2, 1 if inclusive else 2):
-        steps.add((0, j))
-    return steps
-
-def steps_4_diagonal():
-    steps = set()
-    for i in range(-1, 2, 2):
-        for j in range(-1, 2, 2):
-            steps.add((i, j))
-    return steps
-
-def steps_4_lateral():
-    steps = set()
-    for i in range(-1, 2, 2):
-        steps.add((0, i))
-        steps.add((i, 0))
-    return steps
-
-def steps_8_way(inclusive=False):
-    steps = set()
-    for i in range(-1, 2):
-        for j in range(-1, 2):
-            if (i, j) != (0, 0):
-                steps.add((i, j))
-    if inclusive:
-        steps.add((0, 0))
-    return steps
-
 def setup(x, y):
     terminal.open()
     terminal.set(f'window: size={x}x{y}, cellsize=8x8')
@@ -626,6 +590,7 @@ class Room(Node):
         self.top_right = (x1, y2)
         self.bot_left = (x2, y1)
         self.bot_right = (x2, y2)
+        self.color = Color()
 
     def points(self):
         for j in range(y1, y2):
