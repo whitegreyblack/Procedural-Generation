@@ -3,6 +3,7 @@ import sys
 import math
 import color
 import random
+from color import Color
 from bearlibterminal import terminal
 from PIL import Image, ImageDraw
 # MAP FUNCTIONS\
@@ -582,10 +583,11 @@ class Node:
         return set((self.neighbors[k], min(self.id, k), max(self.id, k)) for k in self.neighbors)
             
 class Room(Node):
-    def __init__(self, node_id, x, y, width, height):
-        super().__init__(node_id, x, y):
+    def __init__(self, node_id, x, y, width=8, height=5):
+        super().__init__(node_id, x, y)
         self.width, self.height = width, height
         x1, x2, y1, y2 = self.x - width//2, self.x + width//2 + 1, self.y - height//2, self.y + height//2 + 1
+        self.x1, self.x2, self.y1, self.y2 = x1, x2, y1, y2
         self.top_left = (x1, y1)
         self.top_right = (x1, y2)
         self.bot_left = (x2, y1)
@@ -595,8 +597,8 @@ class Room(Node):
     @property
     def points(self):
         points = set()
-        for j in range(y1, y2):
-            for i in range(x1, x2):
+        for j in range(self.y1, self.y2):
+            for i in range(self.x1, self.x2):
                 points.add((i, j))
         return points
 
@@ -604,20 +606,20 @@ class Room(Node):
     def walls(self):
         points = set()
         # get x axis
-        for j in range(y1, y2):
-            points.add((x1, j))
-            points.add((x2, j))
+        for j in range(self.y1, self.y2):
+            points.add((self.x1, j))
+            points.add((self.x2 - 1, j))
         # get y axis
-        for i in range(x1, x2):
-            points.add((i, y1))
-            points.add((i, y2))
+        for i in range(self.x1, self.x2):
+            points.add((i, self.y1))
+            points.add((i, self.y2 - 1))
         return points
 
     @property
     def floors(self):
         points = set()
-        for j in range(y1 + 1, y2 - 1):
-            for i in range(x1 + 1, x2 - 1):
+        for j in range(self.y1 + 1, self.y2 - 1):
+            for i in range(self.x1 + 1, self.x2 - 1):
                 points.add((i, j))
         return points
 
@@ -626,13 +628,13 @@ class Room(Node):
         return {self.top_left, self.top_right, self.bot_left, self.bot_right}
 
     def random_point(self):
-        return choice(list(self.points))
+        return random.choice(list(self.points))
 
     def random_wall_point(self):
-        return choice(list(self.walls))
+        return random.choice(list(self.walls))
 
     def random_floor_point(self):
-        return choice(list(self.floors))
+        return random.choice(list(self.floors))
 
 class MST():
     '''Takes in list/set of nodes amd returns a minimum spanning tree.'''
