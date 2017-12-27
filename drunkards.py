@@ -592,22 +592,47 @@ class Room(Node):
         self.bot_right = (x2, y2)
         self.color = Color()
 
+    @property
     def points(self):
+        points = set()
         for j in range(y1, y2):
             for i in range(x1, x2):
-                yield (i, j)
+                points.add((i, j))
+        return points
 
+    @property
+    def walls(self):
+        points = set()
+        # get x axis
+        for j in range(y1, y2):
+            points.add((x1, j))
+            points.add((x2, j))
+        # get y axis
+        for i in range(x1, x2):
+            points.add((i, y1))
+            points.add((i, y2))
+        return points
+
+    @property
+    def floors(self):
+        points = set()
+        for j in range(y1 + 1, y2 - 1):
+            for i in range(x1 + 1, x2 - 1):
+                points.add((i, j))
+        return points
+
+    @property
     def corners(self):
-        return [self.top_left, self.top_right, self.bot_left, self.bot_right]
-    
+        return {self.top_left, self.top_right, self.bot_left, self.bot_right}
+
     def random_point(self):
         return choice(list(self.points))
 
     def random_wall_point(self):
-        return 0
+        return choice(list(self.walls))
 
     def random_floor_point(self):
-        return 0
+        return choice(list(self.floors))
 
 class MST():
     '''Takes in list/set of nodes amd returns a minimum spanning tree.'''
