@@ -1,8 +1,9 @@
 from drunkards import MST, Node, line, setup, lpath
 from random import randint
 from math import sqrt
+
 def test_mst_double():
-    a, b = Node(1, 10, 10), Node(2, 20, 20)
+    a, b = Node(1, x=10, y=10), Node(2, x=20, y=20)
     mst = MST()
     mst.add(a)
     mst.add(b)
