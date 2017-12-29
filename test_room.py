@@ -36,3 +36,9 @@ def test_room_points_match_floors_and_walls():
 def test_room_floor_wall_nonoverlap():
     r = Room(node_id=0, x=5, y=5)
     assert set() == r.walls & r.floors
+
+def test_room_points_range():
+    r = Room(node_id=0, x=5, y=5)
+    for x, y in r.points:
+        assert -3 <= x <= 13
+        assert 0 <= y <= 10
