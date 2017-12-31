@@ -136,7 +136,17 @@ class Combinations:
     HORIZONTAL, VERTICAL, DIAGONAL, LATERAL, ALL = range(5)
 
     @staticmethod
+    def types():
+        return (Combinations.HORIZONTAL,
+            Combinations.VERTICAL,
+            Combinations.DIAGONAL,
+            Combinations.LATERAL,
+            Combinations.ALL)
+
+    @staticmethod
     def combinations(combination, inclusive=False):
+        if combination not in Combinations.types():
+            raise ValueError("Invalid Combination")
         steps = set()
         if combination == Combinations.HORIZONTAL:
             for i in range(-1, 2, 2):
@@ -258,16 +268,16 @@ class Map:
         # return random.randint(0, self.width - 1), random.randint(0, self.height - 1)
 
     def neighbors(self, x, y, inclusive=False):
-        return [(x + step[0], y + step[1]) for step in steps_8_way(inclusive)]    
+        return [(x + step[0], y + step[1]) for step in Combinations.combinations(Combinations.ALL, inclusive=inclusive)]    
 
     def neighbors_lateral(self, x, y, inclusive=False):
-        return [(x + step[0], y + step[1]) for step in steps_4_lateral()]    
+        return [(x + step[0], y + step[1]) for step in Combinations.combinations(Combinations.LATERAL, inclusive=inclusive)]    
 
     def neighbors_diagonal(self, x, y, inclusive=False):
-        return [(x + step[0], y + step[1]) for step in steps_4_diagonal()]    
+        return [(x + step[0], y + step[1]) for step in combinations.combinations(Combinations.DIAGONAL, inclusive=inclusive)]    
 
     def neighbors_horizontal(self, x, inclusive=False):
-        return [x + step[0] for step in steps_2_horizontal(inclusive=inclusive)]
+        return [x + step[0] for step in combinations.combinations(Combinations.HORIZONTAL, inclusive=inclusive)]
 
     def generate(self):
         self.world_colored = None
@@ -469,7 +479,7 @@ class Drunkards(Map):
         ry, rx = self.random_point()
 
         while len(self.spaces) <= self.limit:
-            step = random.choice(list(steps_4_lateral()))
+            step = random.choice(list(Combinations.combinations(Combinations.LATERAL, inclusive=False)))
             # if at somepoint we are at the edge of the map and choose
             # a point outside of the map bounds we choose a random point
             # from the map to start the process again
@@ -520,7 +530,7 @@ class DrunkardsPeaks(Map):
         self.spaces = set()
         rx, ry = self.random_point()
         while len(self.spaces) <= self.limit:
-            step = random.choice(list(steps_4_lateral()))
+            step = random.choice(list(Combinations.combinations(Combinations.LATERAL, inclusive=False)))
             if self.check_bounds(rx + step[0], ry + step[1]):
                 rx, ry = rx + step[0], ry + step[1]
             else:
