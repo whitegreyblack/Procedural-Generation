@@ -2,11 +2,29 @@ import drunkards
 import pytest
 from functools import reduce
 
-def test_combinations_invalid_combination():
+def test_combinations_invalid_combination_none():
     x, y = (5, 5)
     comb_type = None
     with pytest.raises(ValueError, message="Invalid Combination"):
         drunkards.Combinations.combinations(comb_type)    
+
+def test_combinations_invalid_combination_str():
+    x, y = (5, 5)
+    comb_type = ""
+    with pytest.raises(ValueError, message="Invalid Combination"):
+        drunkards.Combinations.combinations(comb_type)    
+
+def test_combinations_invalid_combination_int_outside_range_negative():
+    x, y = (5, 5)
+    comb_type = -1
+    with pytest.raises(ValueError, message="Invalid Combination"):
+        drunkards.Combinations.combinations(comb_type)    
+
+def test_combinations_invalid_combination_int_outside_range_positive():
+    x, y = (5, 5)
+    comb_type = 10
+    with pytest.raises(ValueError, message="Invalid Combination"):
+        drunkards.Combinations.combinations(comb_type) 
 
 def test_combinations_horizontal_inclusive():
     x, y = (5, 5)
