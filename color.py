@@ -10,13 +10,10 @@ class Color:
     @color.setter
     def color(self, rgb):
         r, g, b = rgb
-        r = r if r else 0
-        g = g if g else 0
-        b = b if b else 0
         self.__color = combine_hex(
-                        to_hex(r), 
-                        to_hex(g), 
-                        to_hex(b))
+                        to_hex(r or 0), 
+                        to_hex(g or 0), 
+                        to_hex(b or 0))
 
 def combine_hex(r, g, b):
     return '#' + r + g + b
