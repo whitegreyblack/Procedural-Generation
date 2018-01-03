@@ -171,9 +171,9 @@ class Combinations:
             steps.add((0, 0))
         return steps
 
-def setup(x, y):
+def setup(x, y, cx=8, cy=8):
     terminal.open()
-    terminal.set(f'window: size={x}x{y}, cellsize=8x8')
+    terminal.set(f'window: size={x}x{y}, cellsize={cx}x{cy}')
     terminal.refresh()
 
 def key_handle_exit(key):
@@ -666,7 +666,6 @@ class MST():
         '''
         self.mst = set()
         pq = sorted(self.edges)
-        print('PQ', pq)
         while pq:
             d, a, b = pq.pop(0)
             # if d >= 15:
@@ -690,7 +689,6 @@ class MST():
 
         # more = int(len(pq) * .01)
         more = int(len(self.nodes) * .3)
-        print(more)
         for i in range(min(more, len(pq))):
             d, a, b = pq.pop(0)
             self.mst.add((a, b))

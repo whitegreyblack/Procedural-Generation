@@ -2,17 +2,18 @@ from drunkards import MST, Node, line, setup, lpath
 from random import randint
 from math import sqrt
 
-def test_mst_double():
+def ignore_test_mst_double():
     a, b = Node(1, x=10, y=10), Node(2, x=20, y=20)
     mst = MST()
     mst.add(a)
     mst.add(b)
     assert len(mst.nodes) == 2
 
-if __name__ == "__main__":
-    width, height = 160, 88
+# if __name__ == "__main__":
+def ignore_test_mst_nodes():
+    width, height = 160, 44
     low, high = .05, .95
-    setup(width, height)
+    setup(width, height, cx=8, cy=16)
     mst = MST()
     points = set()
     for i in range(100):
