@@ -16,26 +16,40 @@ from matplotlib import cm
 from matplotlib.ticker import LinearLocator, FormatStrFormatter
 import numpy as np
 
+from drunkards import MST, Drunkards, DrunkardsPeaks
 
-fig = plt.figure()
-ax = fig.gca(projection='3d')
+def test_sample():
+    fig = plt.figure()
+    ax = fig.gca(projection='3d')
 
-# Make data.
-X = np.arange(-5, 5, 0.5)
-Y = np.arange(-5, 5, 0.25)
-X, Y = np.meshgrid(X, Y)
-R = np.sqrt(X**2 + Y**2)
-Z = np.sin(R)
+    # Make data.
+    X = np.arange(-10, 10, .5)
+    Y = np.arange(-10, 10, .5)
+    X, Y = np.meshgrid(X, Y)
+    R = np.sqrt(X**2 + Y**2)
+    Z = np.sin(R)
 
-# Plot the surface.
-surf = ax.plot_surface(X, Y, Z, cmap=cm.gist_earth, linewidth=0, antialiased=False)
+    # Plot the surface.
+    surf = ax.plot_surface(X, Y, Z, cmap=cm.gist_earth, linewidth=0, antialiased=False)
 
-# Customize the z axis.
-ax.set_zlim(-1.01, 1.01)
-ax.zaxis.set_major_locator(LinearLocator(10))
-ax.zaxis.set_major_formatter(FormatStrFormatter('%.02f'))
+    # Customize the z axis.
+    ax.set_zlim(-1.01, 1.01)
+    ax.zaxis.set_major_locator(LinearLocator(10))
+    ax.zaxis.set_major_formatter(FormatStrFormatter('%.02f'))
 
-# Add a color bar which maps values to colors.
-fig.colorbar(surf, shrink=0.5, aspect=5)
+    # Add a color bar which maps values to colors.
+    fig.colorbar(surf, shrink=0.5, aspect=5)
 
-plt.show()
+    plt.show()
+
+def test_drunkards():
+    pass
+
+def transform_data(graph):
+    x = np.arange(0, graph.width, 1)
+    y = np.arange(0, graph.height, 1)
+    z = np.array(graph.graph)
+    return x, y, z
+
+if __name__ == "__main__":
+    test_sample()
