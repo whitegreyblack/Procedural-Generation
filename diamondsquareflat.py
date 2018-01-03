@@ -3,7 +3,7 @@ import pprint
 import copy
 from collections import namedtuple
 from PIL import Image, ImageDraw
-from heightmap import steps_9_way
+# from heightmap import steps_9_way
 '''
 So for every map algorithm it returns a value between 0 - 1.
 This is achieved by letting each algorithm run its function and
