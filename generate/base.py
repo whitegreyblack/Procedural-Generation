@@ -7,6 +7,7 @@ from random import random, randint
 from bearlibterminal import terminal
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)) + '/../')
 import generate.color
+from combinations import Combinations
 
 def lpath(b1, b2):
     # x1, y1 = center(b1)
@@ -81,6 +82,7 @@ def line(start, end):
         coord = (y, x) if is_steep else (x, y)
         points.append(coord)
         error -= abs(dy)
+
         if error < 0:
             y += ystep
             error += dx
@@ -88,6 +90,7 @@ def line(start, end):
     # Reverse the list if the coordinates were swapped
     if swapped:
         points.reverse()
+
     return points
 
 def constructor(width, height=None, depth=None, value=None, args=None):
@@ -105,12 +108,16 @@ def constructor(width, height=None, depth=None, value=None, args=None):
         if callable(value):
             if callable(args):
                 ret = value(args())
+
             elif args:
                 ret = value(*args)
+
             else:
                 ret = value()
+
         elif value:
             ret = value
+            
         return ret
 
     if not width:
@@ -126,10 +133,13 @@ def constructor(width, height=None, depth=None, value=None, args=None):
     for _ in range(dimensions):
         if not array:
             array = [determine() for _ in range(width)]
+        
         elif isinstance(array[0], int) or isinstance(array[0], float):
             array = [array for _ in range(height)]
+        
         else:
             array = [array for _ in range(depth)]
+
     return array
 
 def setup(x, y, cx=8, cy=8):
@@ -144,7 +154,6 @@ def key_handle_exit(key):
 def term_loop(m):
     output_flag = False
     while True:
-        # console.clear()
         terminal.clear()
         for x, y, ch, col in list(m.output_terminal(output_flag)):
             terminal.puts(x, y, '[c={}]{}[/c]'.format(col, ch))
@@ -172,9 +181,11 @@ class Map:
     def  __iadd__(self, other):
         if (self.width, self.height) != (other.width, other.height):
             raise ValueError('World Input has different dimensions')
+
         for y in range(self.height):
             for x in range(self.width):
                 self.world[y][x] += other.world[y][x]
+
         self.normalize()
         return self
 
@@ -183,10 +194,12 @@ class Map:
         # print(self.max, other.max)
         if (self.width, self.height) != (other.width, other.height):
             raise ValueError('World Input has different dimensions')
+
         for y in range(self.height):
             for x in range(self.width):
                 self.world[y][x] += other.world[y][x]
                 self.world[y][x] /= 2
+
         self.normalize()
         return self      
 
@@ -218,20 +231,33 @@ class Map:
         x_hb = self.percentage(self.width, .9)
         y_lb = self.percentage(self.height, .1)
         y_hb = self.percentage(self.height, .9)
-        return random.randint(int(x_lb), int(x_hb)) , random.randint(int(y_lb), int(y_hb))
+        return (random.randint(int(x_lb), int(x_hb)), 
+                random.randint(int(y_lb), int(y_hb)))
         # return random.randint(0, self.width - 1), random.randint(0, self.height - 1)
 
     def neighbors(self, x, y, inclusive=False):
-        return [(x + step[0], y + step[1]) for step in Combinations.combinations(Combinations.ALL, inclusive=inclusive)]    
+        return [(x + step[0], y + step[1]) 
+                for step in Combinations.combinations(
+                    combination=Combinations.ALL, 
+                    inclusive=inclusive)]    
 
     def neighbors_lateral(self, x, y, inclusive=False):
-        return [(x + step[0], y + step[1]) for step in Combinations.combinations(Combinations.LATERAL, inclusive=inclusive)]    
+        return [(x + step[0], y + step[1]) 
+                for step in Combinations.combinations(
+                    combination=Combinations.LATERAL, 
+                    inclusive=inclusive)]    
 
     def neighbors_diagonal(self, x, y, inclusive=False):
-        return [(x + step[0], y + step[1]) for step in Combinations.combinations(Combinations.DIAGONAL, inclusive=inclusive)]    
+        return [(x + step[0], y + step[1]) 
+                for step in Combinations.combinations(
+                    combination=Combinations.DIAGONAL, 
+                    inclusive=inclusive)]    
 
     def neighbors_horizontal(self, x, inclusive=False):
-        return [x + step[0] for step in Combinations.combinations(Combinations.HORIZONTAL, inclusive=inclusive)]
+        return [x + step[0] 
+                for step in Combinations.combinations(
+                    combination=Combinations.HORIZONTAL, 
+                    inclusive=inclusive)]
 
     def generate(self):
         self.world_colored = None
@@ -251,27 +277,33 @@ class Map:
 
     def minmax_single(self):
         height = set()
+
         for x in range(self.width):
             if self.world[x] not in height:
                 height.add(self.world[x])
+
         heights = sorted(height, reverse=True)
-        self.max = heights[0]
-        self.min = heights[-1]
+        self.max, self.min = heights[0], heights[-1]
 
     def smooth(self):
         world = self.base_double_flat()
+
         for y in range(self.height):
             for x in range(self.width):
                 num, value = 0, 0
+
                 for xx, yy in self.neighbors(x, y, inclusive=True):
                     try:
                         if (xx, yy) == (x, y):
                             value += self.world[yy][xx] * 1.5
+
                         else:
                             value += self.world[yy][xx] * .5
+
                         num += 1
                     except IndexError:
                         pass
+
                 world[y][x] = value / num
 
         # for y in range(self.height):
@@ -291,6 +323,7 @@ class Map:
                 try:
                     value += self.world[xx]
                     num += 1
+
                 except IndexError:
                     pass
 
@@ -300,15 +333,18 @@ class Map:
     def normalize(self, norm=1):
         self.maxmin()
         world = [[0 for _ in range(self.width)] for _ in range(self.height)]
+
         for y in range(self.height):
             for x in range(self.width):
                 world[y][x] = (self.world[y][x] / self.max) * norm
+
         self.world = world
         self.maxmin()
 
     def pad(self, value):
         if len(value) < 2:
             return "0" + value
+
         return value
 
     def clamp(self, value):
@@ -378,18 +414,18 @@ class Map:
             os.makedirs('pics')
 
         world = self.world_colored if colored else self.world_normal
+
         img = Image.new('RGB', (self.width * 8, self.height * 8))
         ids = ImageDraw.Draw(img)
+
         for y in range(self.height):
             for x in range(self.width):
                 ids.rectangle(
                     [x * 8, y * 8, x * 8 + 8, y * 8 + 8], world[y][x][1])
+
         img_name = (img_id + '_' if img_id else '') + self.__class__.__name__ + '.png'
         print(img_name)
         img.save('pics/' + img_name)        
-
-def convert_tile_map(tilemap):
-    pass
 
 if __name__ == "__main__":
     width, height = 240, 160
