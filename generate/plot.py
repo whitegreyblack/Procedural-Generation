@@ -17,7 +17,7 @@ from matplotlib.ticker import LinearLocator, FormatStrFormatter
 import numpy as np
 
 from map_drunkards import Drunkards
-from map_drunkards_peaks DrunkardsPeaks
+from map_drunkards_peaks import DrunkardsPeaks
 
 def test_sample():
     fig = plt.figure()
