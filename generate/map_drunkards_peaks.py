@@ -1,4 +1,5 @@
 import random
+import PIL
 from combinations import Combinations
 from base import Map, term_loop
 
@@ -85,7 +86,7 @@ def run_drunkards_peaks(width, height, noise, peaks, seed=None):
     m.evaluate()
     term_loop(m)
 
-def run_combination(width, height, maps):
+def run_combination(width, height, maps=5):
     m = DrunkardsPeaks(width, height, .45, 13)  
 
     m.generate()
@@ -93,8 +94,8 @@ def run_combination(width, height, maps):
 
     term_loop(m)
 
-def run_combination_image(width, height, maps):
-    m = DrunkardsPeaks(width, height, .35, 10)
+def run_combination_image(width, height, maps=3):
+    m = DrunkardsPeaks(width, height, limit=.35, peaks=10)
     # m = Drunkards(width, height, .45)
     m.evaluate()  
     m.output_image(colored=True, img_id='0')
@@ -103,7 +104,7 @@ def run_combination_image(width, height, maps):
     # n.evaluate()  
     # n.output_image(colored=True, img_id='1')
     for i in range(maps - 1):
-        n = DrunkardsPeaks(width, height, .2)
+        n = DrunkardsPeaks(width, height, limit=.2, peaks=10)
         n.evaluate()
         n.output_image(colored=True, img_id=str((i + 1) * 2))
         m *= n
@@ -120,6 +121,14 @@ def run_combination_image(width, height, maps):
     m.output_image(colored=False,img_id=str((i + 1) * 2 + 2) + 'c')
     print(m.min)
 
+def run_peaks_to_bitmap(width, height):
+    assert width % 8 == 0 and height % 8 == 0
+    m = DrunkardsPeaks(width, height, limit=.45, peaks=10)
+    m.evaluate()
+    print(m.world)
+    
+
 if __name__ == "__main__":
     print(__file__)
-
+    run_combination_image(48, 36)
+    # run_peaks_to_bitmap(480, 360)

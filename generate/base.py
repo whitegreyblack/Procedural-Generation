@@ -3,7 +3,6 @@ import sys
 import math
 import random
 from PIL import Image, ImageDraw
-from random import random, randint
 from bearlibterminal import terminal
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)) + '/../')
 import generate.color
@@ -295,12 +294,12 @@ class Map:
                 for xx, yy in self.neighbors(x, y, inclusive=True):
                     try:
                         if (xx, yy) == (x, y):
-                            value += self.world[yy][xx] * 1.5
+                            value += self.world[yy][xx]
 
                         else:
-                            value += self.world[yy][xx] * .5
+                            value += self.world[yy][xx]
 
-                        num += 1
+                            num += 1
                     except IndexError:
                         pass
 
@@ -368,11 +367,11 @@ class Map:
 
     def integer_to_yellow(self, value):
         # print(value)
-        value = (1 - value) # .85
-        r = self.pad(hex(int(value * .5 * 250)).split('x')[1])
-        g = self.pad(hex(int(value * .8 * 250)).split('x')[1])
-        b = self.pad(hex(int(value * .3 * 250)).split('x')[1])
-        return '#' + r + g + b
+        # value = (1 - value) # .85
+        # r = self.pad(hex(int(value * .5 * 250)).split('x')[1])
+        # g = self.pad(hex(int(value * .8 * 250)).split('x')[1])
+        # b = self.pad(hex(int(value * .3 * 250)).split('x')[1])
+        return '#deef88'
         
     def split_range(self, number=25):
         return sorted([(self.max * i) / number for i in range(number)], reverse=True)
