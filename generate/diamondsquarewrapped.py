@@ -1,81 +1,73 @@
 import random
+from collections import namedtuple
+
+point = namedtuple("Point", "x y")
+box = namedtuple("Box", "x1 y1 x2 y2")
 
 class DSW:
-    def __init__(self, width, height, roughness):
-        self.width = width
-        self.height = height
+    def __init__(self, power, roughness):
+        size = 2 ** power + 1
+        print(size)
+        self.width, self.height = size, size
         self.min = 125
         self.max = 125
-        self.map = [[random.random() * 2 - 1 for j in range(height)] for i in range(width)]
+
+        # initialize to zero
+        self.map = [[0.0 for j in range(size)] for i in range(size)]
+
         self.noise = roughness
         self.initialize()
 
-    def rand(self):
-        return random.random()*2-1
+    def random_float(self):
+        return random.random() * 2 - 1
 
-    def get(self, x, y):
-        return self.map[x % self.width - 1][y % self.height - 1]
-
-    def getsample(self, x, y):
-        return self.map[x&self.width-1][y&self.height-1]
-
-    def setsample(self, x, y, z):
-        self.map[x&self.width-1][y&self.height-1] = z
-
-    def minmax(self, x):
-        return x
-
-    def colorize(self):
-        for i in range(self.height):
-            for j in range(self.width):
-                self.map[j][i] = self.minmax(int((self.map[j][i]+1.0)/2.0*255))
+    def at(self, x, y):
+        return self.map[y][x]
 
     def norm(self, x):
         """ clamp between -1 and 1 """
         return max(-1, min(x, 1))
 
-    def normeAll(self):
-        for i in range(self.width):
-            for j in range(self.height):
-                self.map[i][j] = self.norm(self.map[i][j])
-
     def initialize(self):
-
         # get map dimensions shifted by 1 to account for map indices
-        W, H = self.width, self.height
+        b = box(0, 0, self.width - 1, self.height - 1)
+
+        print(b)
+
         # initialize corners
-        self.map[0][0] = self.rand()
-        self.map[0][0] = self.rand()
-    
-    def square(self, x, y, size, value):
-        pass
+        self.map[b.y1][b.x1] = self.random_float() 
+        self.map[b.y1][b.x2] = self.random_float()
+        self.map[b.y2][b.x1] = self.random_float()
+        self.map[b.y2][b.x1] = self.random_float()
 
-    def diamondsquare(self, width, height):
-        xs, ys = 0, 0
-        xm, ym = width // 2, height // 2
-        xe, ye = width, height
-        print('BEG: ', xs, ys)
-        print('MID: ', xm ,ym)
-        print('END: ', xe, ye)
-        q4 = (xs, ys, xm, ym)
-        q1 = (xm, ys, xe, ym)
-        q2 = (xm, ym, xe, ye)
-        q3 = (xs, ym, xm, ye)
-        print(q4, q1)
-        print(q3, q2)
-        # initialize square
-        # self.map[width//2][height//2] = e = (self.get() + c + g + i) / 4
+        # once
+        self.diamond(b)
 
-        # # initialize diamond
-        # self.map[W/2][0] = b = (a+c+e+e)/4
-        # self.map[0][H/2] = d = (a+g+e+e)/4
-        # self.map[W][H/2] = f = (c+i+e+e)/4
-        # self.map[W/2][H] = h = (a+c+e+e)/4
+        # four times
+        self.square(b)
 
-        # # recursive call
-        # #self.diamondsquare(W, H)
+    def diamond(self, box):
+        x5, y5 = box.x2 // 2, box.y2 // 2
+        
+        p1 = self.at(box.x1, box.y2)
+        p3 = self.at(box.x2, box.y2)
+        p7 = self.at(box.x1, box.y1)
+        p9 = self.at(box.x2, box.y1)
+
+        self.map[y5][x5] = (p1 + p3 + p7 + p9) / 4 
+        self.map[y5][x5] *= 2.0 ** self.noise
+
+    def square(self, box):
+        x2, y2 = box.x2 // 2, box.y2
+        x4, y4 = box.x1, box.y2 // 2
+        x6, y6 = box.x2, box.y2 // 2
+        x8, y8 = box.x2 // 2, box.y1
+
+        print(x2, y2)
+        print(x4, y4)
+        print(x6, y6)
+        print(x8, y8)
 
 if __name__ == "__main__":
-    dsw = DSW(200, 50, .5)
-    dsw.diamondsquare(dsw.width, dsw.height)
+    dsw = DSW(5, .5)
     

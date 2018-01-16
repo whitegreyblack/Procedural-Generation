@@ -31,6 +31,7 @@ class MPD(Map):
         self.subdivide(x + 1, end, delta * self.noise)
 
 def run_midpoint_single(width, height, noise=.7, seed=None):
+    terminal.open()
     line = MPD(width=width, height=height, noise=noise, seed=seed)
     line.subdivide(0, width-1, 50)
     # line.serialdivide(0, width - 1, 50)
@@ -38,15 +39,20 @@ def run_midpoint_single(width, height, noise=.7, seed=None):
 
     total = line.max - line.min
     print(total, line.max, line.min)
+
     while True:
         terminal.clear()
         for i in range(width):
             terminal.puts(i, int(round((line.world[i] - line.min)) / (total) * height), '.')
+
         terminal.refresh()
+
         key = terminal.read()
+        
         if key_handle_exit(key):
             terminal.close()
             break
+
         elif key == terminal.TK_S:
             line.smooth_single()
 
