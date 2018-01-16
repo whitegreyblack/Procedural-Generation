@@ -24,6 +24,9 @@ class DSW:
     def at(self, x, y):
         return self.map[y][x]
 
+    def set(self, x, y, v):
+	self.map[y][x] = v
+
     def norm(self, x):
         """ clamp between -1 and 1 """
         return max(-1, min(x, 1))
@@ -54,20 +57,27 @@ class DSW:
         p7 = self.at(box.x1, box.y1)
         p9 = self.at(box.x2, box.y1)
 
-        self.map[y5][x5] = (p1 + p3 + p7 + p9) / 4 
-        self.map[y5][x5] *= 2.0 ** self.noise
+        self.set(x5, y5, (p1 + p3 + p7 + p9) / 4)
 
     def square(self, box):
-        x2, y2 = box.x2 // 2, box.y2
-        x4, y4 = box.x1, box.y2 // 2
+        p1 = self.at(box.x1, box.y2)
+        p3 = self.at(box.x2, box.y2)
+	p5 = self.at(box.x2 // 2, box.y2 // 2)
+        p7 = self.at(box.x1, box.y1)
+        p9 = self.at(box.x2, box.y1)
+
+	x2, y2 = box.x2 // 2, box.y2	
+        self.set(x2, y2, (p1 + p3 + p5 / 3))
+
+	x4, y4 = box.x1, box.y2 // 2
+	self.set(x4, y4, (p1 + p5 + p3 / 3))
+
         x6, y6 = box.x2, box.y2 // 2
+	self.set(x6, y6, (p3 + p5 + p9 / 3))
+
         x8, y8 = box.x2 // 2, box.y1
-
-        print(x2, y2)
-        print(x4, y4)
-        print(x6, y6)
-        print(x8, y8)
-
+	self.set(x8, y8, (p5 + p7 + p9 / 3))
+	
 if __name__ == "__main__":
     dsw = DSW(5, .5)
-    
+    print(dsw.map) 
