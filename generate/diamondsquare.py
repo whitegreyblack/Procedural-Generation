@@ -10,9 +10,9 @@ Box = namedtuple("Box", "x1 y1 x2 y2")
 class DSW:
     def __init__(self, power, noise=.5, delta=.8):
         size = 2 ** power + 1
-        print(size)
+        print(size, size * size)
         self.width, self.height = size, size
-
+    
         # initialize to zero
         self.map = [[0.0 for j in range(size)] for i in range(size)]
         self.hex = [[0.0 for j in range(size)] for i in range(size)]
@@ -63,20 +63,37 @@ class DSW:
         min = self.minimize()
         max = self.maximize()
 
+        self.values = []
+
         for y, row in enumerate(self.map):
             for x, cell in enumerate(row):
                 self.map[y][x] = (cell - min) / (max - min)
-                self.hex[y][x] = self.float_to_hex(self.map[y][x])
-                self.clr[y][x] = self.float_to_clr(self.map[y][x])
+                self.values.append(self.map[y][x])
+
+        sorted(self.values)
+        self.divide()
+
+        for y, row in enumerate(self.map):
+            for x, cell in enumerate(row):
+                self.hex[y][x] = self.float_to_hex(cell)
+                self.clr[y][x] = self.float_to_clr(cell)
+
+    def divide(self):
+        self.mountains = round(self.width * self.height * .99)
+        self.forests = round(self.width * self.height * .8)
+        self.grassland = round(self.width * self.height * .55)
+        print(self.mountains, self.forests, self.grassland)
 
     def float_to_clr(self, x):
-        value = x
 
-        if value >= .8:
-            return "#dddddd"
+        if x > self.values[self.grassland]:
+            return "#008855"
 
-        elif value >= .35:
-            return "#333333"
+        # elif self.values[self.forests] <= x < self.values[self.mountains]:
+        #     return "#000000"
+
+        # elif x > self.values[self.grassland]:
+        #     return "#008855"
 
         else:
             return "#005577"
@@ -173,8 +190,8 @@ def norm_print(map, size, pid='0'):
 
     for y, row in enumerate(map):
         for x, cell in enumerate(row):
-            # ids.point([x, y, x+1, y+1], cell)
-            ids.rectangle((x, y, x, y), cell)
+            ids.point([x, y, x, y], cell)
+            # ids.rectangle((x, y, x, y), cell)
 
     img_name = 'diamond_square_{}.png'.format(pid)
     img.save('../pics/' + img_name)    
@@ -193,12 +210,17 @@ def color_print(map, size, pid='0'):
     img.save('../pics/' + img_name)    
 
 if __name__ == "__main__":
+    seed = random.randint(0, 99999)
+    print(seed)
+    random.seed(seed)
     size = 9
     # dsw = DSW(size, noise=.72, delta=.8)
     # dsw.prettify()
     # term_print(dsw.hex, 6)
     # norm_print(dsw.hex, size, pid='0')
 
-    dsw = DSW(size, noise=.72, delta=.35)
+    dsw = DSW(size, noise=.55, delta=.65)
     norm_print(dsw.hex, size, pid='1n')
     color_print(dsw.clr, size, pid='1c')
+
+    # heat = DSW(size, noise=.55, delta=.65)
