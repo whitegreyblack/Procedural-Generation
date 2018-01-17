@@ -151,7 +151,7 @@ class DSW:
         # self.set(x8, y8, ((p5 + p7 + p9) / 3) + self.random_range(-noise, noise))
 
         # noise = noise * (2 ** -.75)
-        noise *= 2 ** -self.noise
+        noise /= 2 ** self.noise
 
         # print(noise)
         if box.x2 - box.x1 > 2 or box.y2 - box.y1 > 2:

@@ -1,19 +1,23 @@
 import random
 import numpy
 import pprint
+
+from diamondsquare import norm_print
+
 class DS:
     """ Returns a list of lists of size (2^n)+1 of values ranging from 0-255 """
-    def __init__(self, size=65, maxa=255.0, seed=random.randint(0,9999), offset=2.0, power=-0.75):
+    def __init__(self, maxa=255.0, seed=random.randint(0,9999), offset=2.0, power=-0.75):
         random.seed(seed)
         self.seed = seed
-        self.size = size
+        self.size = size ** 2 + 1
+        print(self.size)
         self.power = power
-        self.value = maxa/2.0
+        self.value = maxa / 2.0
         self.offset = offset
-        self.map = [[0.0 for j in range(self.size)] for i in range(self.size)]
+        self.map = [[0.0 for _ in range(self.size)] for _ in range(self.size)]
 
     def _mid(self, a, b): 
-        return (a+b)/2
+        return (a + b) // 2
 
     def _get(self, a, b): 
         return self.map[a][b]
@@ -23,22 +27,28 @@ class DS:
 
     def sset(self, a, b, c): 
         self.map[a][b] = c if self._get(a,b) == 0.0 else self._get(a, b)
+
     def tget(self):
         values = []
         for i in range(self.size):
             for j in range(self.size):
                 if j == 0:
                     values.append(self._get(i,j))
+
         return values
+    
     def lget(self):
         return self.map[0]
+    
     def rget(self):
         return self.map[self.size-1]
+
     def tset(self, l):
         for i in range(self.size):
             for j in range(self.size):
                 if j == 0:
                     self.map[i][j] = l[i]
+
     def lset(self, l):
         self.map[0] = l
 
@@ -50,7 +60,7 @@ class DS:
         return l
 
     def _tot(self, x):
-        return sum(x)/float(len(x))
+        return sum(x) / float(len(x))
 
     def _mul(self, a, b=1): 
         return self._int((random.random() - 0.5) * a * b)
@@ -65,8 +75,10 @@ class DS:
                 if (x, y) != (x+i, y+j):
                     try:
                         neighbors.append(self._get(x+i, y+j))
+
                     except:
                         neighbors.append(self._get(x, y))
+
         return self._tot([self._tot(neighbors), self._get(x, y)])
         #return self._tot(neighbors)
 
@@ -79,21 +91,29 @@ class DS:
         self.map = copy
 
     def minmax(self):
-        self.min, self.max = 0, 0
-        for i in range(self.size):
-            for j in range(self.size):
-                self.min = self._get(i,j) if self._get(i,j) < self.min else self.min
-                self.max = self._get(i,j) if self._get(i,j) > self.max else self.max
+        self.min = min(cell for row in self.map for cell in row)
+        self.max = max(cell for row in self.map for cell in row)
 
-    def normalize(self):
-        self.minmax()
+    def normalize(self):        
         def norm(x):
-                return ((x-float(self.min))/(float(self.max)-float(self.min)))
-        copy = numpy.copy(self.map)
-        for i in range(self.size):
-            for j in range(self.size):
-                copy[i][j] = norm(float(self._get(i, j)))
-        return copy
+                return (x - self.min) / (self.max - self.min)
+
+        self.minmax()
+        self.hex = [[None for _ in range(self.size)] for _ in range(self.size)]
+
+        for j, row in enumerate(self.map):
+            for i, cell in enumerate(row):
+                flt_value = norm(cell)
+                hex_value = self.float_to_hex(flt_value)
+                self.hex[j][i] = hex_value
+
+    def float_to_hex(self, x):
+        value = hex(round(x * 250)).split('x')[1]
+        
+        if len(value) < 2:
+            value = '0' + value
+
+        return '#' + value * 3
 
     def _sum(self, x, y, l ,t, r, b, v):
         if not v:
@@ -115,32 +135,41 @@ class DS:
         def setpoint(x, y): 
             v = random.random()
             self.sset(x, y, v)
+
         self.num = n
-        s = self.size-1 # set to list coordinates        
+        s = self.size - 1 # set to list coordinates        
         setpoint(0, 0)
         setpoint(0, s)
         setpoint(s, 0)
         setpoint(s, s)
+
         self.diamondsquare(0, 0, s, s, self.value)
 
     def diamondsquare(self, l, t, r, b, d):
         x = self._mid(l, r)
         y = self._mid(t, b)
         cm = self._sum(x, y, l, t, r, b, 0)
+
         self.sset(x, y, cm - self._mul(d, 2))
 
         tm, bm, lm, rm = self._sum(x, y, l, t, r, b, 1)
+
         self.sset(x, t, tm + self._mul(d))
         self.sset(x, b, bm + self._mul(d))
         self.sset(l, y, lm + self._mul(d))
         self.sset(r, y, rm + self._mul(d))
+
         if (r - l) > 2:
             d = d / self.offset ** self.power
+
             self.diamondsquare(l, t, x, y, d)
             self.diamondsquare(x, t, r, y, d)
             self.diamondsquare(l, y, x, b, d)
             self.diamondsquare(x, y, r, b, d)
 
 if __name__ == "__main__":
-    dsf = DS(size=124, n=50)
-    dsf.output_image(True)
+    size = 10
+    dsf = DS(size)
+    dsf.initialize(50)
+    dsf.normalize()
+    norm_print(dsf.hex, size)
