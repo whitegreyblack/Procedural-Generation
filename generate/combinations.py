@@ -1,8 +1,17 @@
 class Combinations:
+    '''Includes two static methods: types and combinations
+    Types: 
+        uses combination.keys
+
+    Combinations: 
+        uses combination sets if given a proper
+        combination key
+    '''
     HORIZONTAL, VERTICAL, DIAGONAL, LATERAL, ALL = range(5)
 
     @staticmethod
     def types():
+        '''Returns all combination key types'''
         return (Combinations.HORIZONTAL,
             Combinations.VERTICAL,
             Combinations.DIAGONAL,
@@ -11,6 +20,7 @@ class Combinations:
 
     @staticmethod
     def combinations(combination, inclusive=False):
+        '''Returns a combination set given a combination key'''
         if combination not in Combinations.types():
             raise ValueError("Invalid Combination")
 

@@ -126,6 +126,7 @@ class DS:
             bm = [self._get(l, b), self._get(r, b)]
             lm = [self._get(l, t), self._get(l, b)]
             rm = [self._get(r, t), self._get(r, b)]
+            
             return (self._tot(self._add(tm, x, y)),
                 self._tot(self._add(bm, x, y)),
                 self._tot(self._add(lm, x, y)),
