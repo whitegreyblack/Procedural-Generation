@@ -8,19 +8,21 @@ Point = namedtuple("Point", "x y")
 Box = namedtuple("Box", "x1 y1 x2 y2")
 
 class DSW:
-    def __init__(self, power, roughness=.5):
+    def __init__(self, power, noise=.5, delta=.8):
         size = 2 ** power + 1
         print(size)
         self.width, self.height = size, size
-        self.min = 125
-        self.max = 125
 
         # initialize to zero
         self.map = [[0.0 for j in range(size)] for i in range(size)]
         self.hex = [[0.0 for j in range(size)] for i in range(size)]
+        self.clr = [[0.0 for j in range(size)] for i in range(size)]
 
-        self.noise = roughness
+        self.noise = noise
+        self.delta = delta
         self.run()
+
+        self.normalize()
 
     def prettify(self):
         def fmtfloat(x):
@@ -39,7 +41,6 @@ class DSW:
         return random.random()
 
     def at(self, x, y):
-        # print(x, y, self.map[y][x])
         return self.map[y][x]
 
     def set(self, x, y, v):
@@ -47,21 +48,38 @@ class DSW:
         self.map[y][x] = v
 
     def minimize(self):
-        return min(cell for row in self.map for cell in row)
+        if not hasattr(self, 'min'):
+            self.min = min(cell for row in self.map for cell in row)
         
+        return self.min
+            
     def maximize(self):
-        return max(cell for row in self.map for cell in row)
+        if not hasattr(self, 'max'):
+            self.max = max(cell for row in self.map for cell in row)
+
+        return self.max
 
     def normalize(self):
-        """ clamp between -1 and 1 """
         min = self.minimize()
         max = self.maximize()
-        print(max, min)
 
         for y, row in enumerate(self.map):
             for x, cell in enumerate(row):
                 self.map[y][x] = (cell - min) / (max - min)
                 self.hex[y][x] = self.float_to_hex(self.map[y][x])
+                self.clr[y][x] = self.float_to_clr(self.map[y][x])
+
+    def float_to_clr(self, x):
+        value = x
+
+        if value >= .8:
+            return "#dddddd"
+
+        elif value >= .35:
+            return "#333333"
+
+        else:
+            return "#005577"
 
     def float_to_hex(self, x):
         value = hex(round(x * 250)).split('x')[1]
@@ -80,12 +98,7 @@ class DSW:
         self.set(b.x2, b.y1, self.random_float())
         self.set(b.x2, b.y2, self.random_float())
 
-        self.diamondsquare(b, .8)
-
-        self.normalize()
-
-    def breadthfirst(self, box, noise):
-        pass
+        self.diamondsquare(b, self.delta)
 
     def diamondsquare(self, box, noise):
         hx, hy = (box.x2 - box.x1) // 2, (box.y2 - box.y1) // 2
@@ -153,7 +166,20 @@ def term_print(map, size):
     term.refresh()
     term.read()
 
-def img_print(map, size):
+def norm_print(map, size, pid='0'):
+    s = 2 ** size + 1
+    img = Image.new('RGB', (s, s))
+    ids = ImageDraw.Draw(img)
+
+    for y, row in enumerate(map):
+        for x, cell in enumerate(row):
+            # ids.point([x, y, x+1, y+1], cell)
+            ids.rectangle((x, y, x, y), cell)
+
+    img_name = 'diamond_square_{}.png'.format(pid)
+    img.save('../pics/' + img_name)    
+
+def color_print(map, size, pid='0'):
     s = 2 ** size + 1
     img = Image.new('RGB', (s, s))
     ids = ImageDraw.Draw(img)
@@ -163,12 +189,16 @@ def img_print(map, size):
             # ids.point([x, y, x+1, y+1], cell)
             ids.rectangle([x, y, x , y], cell)
 
-    img_name = 'diamond_square.png'
-    img.save('../pics/' + img_name)        
+    img_name = 'diamond_square_{}.png'.format(pid)
+    img.save('../pics/' + img_name)    
 
 if __name__ == "__main__":
-    size = 7
-    dsw = DSW(size, roughness=.72)
+    size = 9
+    # dsw = DSW(size, noise=.72, delta=.8)
     # dsw.prettify()
     # term_print(dsw.hex, 6)
-    img_print(dsw.hex, size)
+    # norm_print(dsw.hex, size, pid='0')
+
+    dsw = DSW(size, noise=.72, delta=.35)
+    norm_print(dsw.hex, size, pid='1n')
+    color_print(dsw.clr, size, pid='1c')
