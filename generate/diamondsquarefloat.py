@@ -6,14 +6,16 @@ from diamondsquare import norm_print
 
 class DS:
     """ Returns a list of lists of size (2^n)+1 of values ranging from 0-255 """
-    def __init__(self, maxa=255.0, seed=random.randint(0,9999), offset=2.0, power=-0.75):
+    def __init__(self, size, maxa=255.0, seed=random.randint(0,9999), offset=2.0, power=-0.75):
         random.seed(seed)
         self.seed = seed
-        self.size = size ** 2 + 1
-        print(self.size)
+
+        self.size = 2 ** size + 1
+
         self.power = power
         self.value = maxa / 2.0
         self.offset = offset
+
         self.map = [[0.0 for _ in range(self.size)] for _ in range(self.size)]
 
     def _mid(self, a, b): 
@@ -41,7 +43,7 @@ class DS:
         return self.map[0]
     
     def rget(self):
-        return self.map[self.size-1]
+        return self.map[self.size - 1]
 
     def tset(self, l):
         for i in range(self.size):
@@ -53,7 +55,7 @@ class DS:
         self.map[0] = l
 
     def rset(self, l):
-        self.map[self.size-1] = l
+        self.map[self.size - 1] = l
         
     def _add(self, l, x, y):
         l.extend([self._get(x,y)]*self.num)
