@@ -105,3 +105,6 @@ ENV/
 
 # .swsp
 *.swp
+
+# images generate from maps
+/pics

@@ -1,13 +1,45 @@
+import math
 import random
-from collections import namedtuple
+from color import Color
+from header import line
+from copy import deepcopy
 from pprint import pprint
-from bearlibterminal import terminal as term
 from PIL import Image, ImageDraw
+from collections import namedtuple
+from combinations import Sequences
+from bearlibterminal import terminal as term
 
 Point = namedtuple("Point", "x y")
 Box = namedtuple("Box", "x1 y1 x2 y2")
 
+def print_term(map, size):
+    term.open()
+    s = 2 ** size + 1
+    term.set(f'window: title=DiamondSquare, size={s}x{s}, cellsize=8x8')
+
+    for y, row in enumerate(map):
+        for x, cell in enumerate(row):
+            term.puts(x, y, "[c={}]#[/c]".format(cell))
+
+    term.refresh()
+    term.read()
+
+def print_image(map, size, pid='0'):    
+    s = 2 ** size + 1
+    img = Image.new('RGB', (s, s))
+    ids = ImageDraw.Draw(img)
+
+    for y, row in enumerate(map):
+        for x, cell in enumerate(row):
+            # ids.point([x, y, x+1, y+1], cell)
+            ids.rectangle([x, y, x , y], cell)
+
+    img_name = 'diamond_square_{}.png'.format(pid)
+    img.save('../pics/' + img_name)    
+
 class DSW:
+    LAND ="#008855"
+    WATER = "#005577"
     def __init__(self, power, noise=.5, delta=.8):
         size = 2 ** power + 1
         print(size, size * size)
@@ -78,6 +110,23 @@ class DSW:
                 self.hex[y][x] = self.float_to_hex(cell)
                 self.clr[y][x] = self.float_to_clr(cell)
 
+    def sort_array_max(self):
+        def distance(i, j):
+            x = (self.width // 2) - i
+            y = (self.height // 2) - j
+            return math.sqrt((x * x) + (y * y))
+
+        maxes = sorted([(x, i, j) 
+            for j, y in enumerate(self.map) 
+                for i, x in enumerate(y)], 
+            reverse=True,
+            key=lambda x: (x[0], distance(x[1], x[2])))
+
+        print(maxes[0], maxes[1])
+        
+        for x, y in line((maxes[0][1:]), maxes[1][1:]):
+            self.map[y][x] = "#4433AA"
+
     def divide(self):
         self.mountains = round(self.width * self.height * .99)
         self.forests = round(self.width * self.height * .8)
@@ -87,7 +136,7 @@ class DSW:
     def float_to_clr(self, x):
 
         if x > self.values[self.grassland]:
-            return "#008855"
+            return self.LAND
 
         # elif self.values[self.forests] <= x < self.values[self.mountains]:
         #     return "#000000"
@@ -96,7 +145,7 @@ class DSW:
         #     return "#008855"
 
         else:
-            return "#005577"
+            return self.WATER
 
     def float_to_hex(self, x):
         value = hex(round(x * 250)).split('x')[1]
@@ -171,56 +220,45 @@ class DSW:
                 box.x1 + hx, box.y1 + hy, 
                 box.x2, box.y2), noise)
 
-def term_print(map, size):
-    term.open()
-    s = 2 ** size + 1
-    term.set(f'window: title=DiamondSquare, size={s}x{s}, cellsize=8x8')
+    def remove_singles(self):
+        '''Removes isolated land or water tiles'''
+        new_map = deepcopy(self.clr)
 
-    for y, row in enumerate(map):
-        for x, cell in enumerate(row):
-            term.puts(x, y, "[c={}]#[/c]".format(cell))
+        for j, y in enumerate(self.clr):
+            for i, x in enumerate(y):
+                remove = True
+                for ii, jj in Sequences.sequences(Sequences.ALL):
+                    try:
+                        if self.clr[j+jj][i+ii] == x:
+                            remove = False
+                            break
 
-    term.refresh()
-    term.read()
+                    except IndexError:
+                        pass
 
-def norm_print(map, size, pid='0'):
-    s = 2 ** size + 1
-    img = Image.new('RGB', (s, s))
-    ids = ImageDraw.Draw(img)
+                if remove:
+                    print('removing', i, j)
+                    new_map[j][i] = self.WATER if x == self.LAND else self.LAND
 
-    for y, row in enumerate(map):
-        for x, cell in enumerate(row):
-            ids.point([x, y, x, y], cell)
-            # ids.rectangle((x, y, x, y), cell)
-
-    img_name = 'diamond_square_{}.png'.format(pid)
-    img.save('../pics/' + img_name)    
-
-def color_print(map, size, pid='0'):
-    s = 2 ** size + 1
-    img = Image.new('RGB', (s, s))
-    ids = ImageDraw.Draw(img)
-
-    for y, row in enumerate(map):
-        for x, cell in enumerate(row):
-            # ids.point([x, y, x+1, y+1], cell)
-            ids.rectangle([x, y, x , y], cell)
-
-    img_name = 'diamond_square_{}.png'.format(pid)
-    img.save('../pics/' + img_name)    
+        self.clr = deepcopy(new_map)
 
 if __name__ == "__main__":
     seed = random.randint(0, 99999)
     print(seed)
     random.seed(seed)
-    size = 9
+    size = 3
     # dsw = DSW(size, noise=.72, delta=.8)
     # dsw.prettify()
     # term_print(dsw.hex, 6)
     # norm_print(dsw.hex, size, pid='0')
 
     dsw = DSW(size, noise=.55, delta=.65)
-    norm_print(dsw.hex, size, pid='1n')
-    color_print(dsw.clr, size, pid='1c')
+    print_image(dsw.clr, size, pid='2n')
+    dsw.sort_array_max()
+    dsw.remove_singles()
+    print_image(dsw.hex, size, pid='1n')
+    print_image(dsw.clr, size, pid='1c')
+    # norm_print(dsw.hex, size, pid='1n')
+    # color_print(dsw.clr, size, pid='1c')
 
     # heat = DSW(size, noise=.55, delta=.65)

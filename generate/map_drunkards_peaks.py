@@ -1,7 +1,7 @@
 import random
 import PIL
-from combinations import Combinations
-from base import Map, term_loop
+from generate.combinations import Sequences
+from generate.base import Map, term_loop
 
 class DrunkardsPeaks(Map):
     def __init__(self, width, height, limit, peaks, seed=None):
@@ -40,7 +40,7 @@ class DrunkardsPeaks(Map):
         self.spaces = set()
         rx, ry = self.random_point()
         while len(self.spaces) <= self.limit:
-            step = random.choice(list(Combinations.combinations(Combinations.LATERAL, inclusive=False)))
+            step = random.choice(list(Sequences.sequences(Sequences.LATERAL, inclusive=False)))
             if self.check_bounds(rx + step[0], ry + step[1]):
                 rx, ry = rx + step[0], ry + step[1]
             else:

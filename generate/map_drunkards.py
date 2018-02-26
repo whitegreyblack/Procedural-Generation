@@ -1,5 +1,5 @@
 import random
-from combinations import Combinations
+from combinations import Sequences
 from base import Map, term_loop
 
 class Drunkards(Map):
@@ -19,7 +19,7 @@ class Drunkards(Map):
         ry, rx = self.random_point()
 
         while len(self.spaces) <= self.limit:
-            step = random.choice(list(Combinations.combinations(Combinations.LATERAL, inclusive=False)))
+            step = random.choice(list(Sequences.sequences(Sequences.LATERAL, inclusive=False)))
             # if at somepoint we are at the edge of the map and choose
             # a point outside of the map bounds we choose a random point
             # from the map to start the process again

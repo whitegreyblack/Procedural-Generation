@@ -1,49 +1,49 @@
-class Combinations:
-    '''Includes two static methods: types and combinations
+class Sequences:
+    '''Includes two static methods: types and sequences
     Types: 
-        uses combination.keys
+        uses sequence.keys
 
-    Combinations: 
-        uses combination sets if given a proper
-        combination key
+    Sequences: 
+        uses sequence sets if given a proper
+        sequence key
     '''
     HORIZONTAL, VERTICAL, DIAGONAL, LATERAL, ALL = range(5)
 
     @staticmethod
     def types():
-        '''Returns all combination key types'''
-        return (Combinations.HORIZONTAL,
-            Combinations.VERTICAL,
-            Combinations.DIAGONAL,
-            Combinations.LATERAL,
-            Combinations.ALL)
+        '''Returns all sequence key types'''
+        return (Sequences.HORIZONTAL,
+            Sequences.VERTICAL,
+            Sequences.DIAGONAL,
+            Sequences.LATERAL,
+            Sequences.ALL)
 
     @staticmethod
-    def combinations(combination, inclusive=False):
-        '''Returns a combination set given a combination key'''
-        if combination not in Combinations.types():
-            raise ValueError("Invalid Combination")
+    def sequences(sequence, inclusive=False):
+        '''Returns a sequence set given a sequence key'''
+        if sequence not in Sequences.types():
+            raise ValueError("Invalid sequence")
 
         steps = set()
-        if combination == Combinations.HORIZONTAL:
+        if sequence == Sequences.HORIZONTAL:
             for i in range(-1, 2, 2):
                 steps.add((i, 0))
 
-        elif combination == Combinations.VERTICAL:
+        elif sequence == Sequences.VERTICAL:
             for j in range(-1, 2, 2):
                 steps.add((0, j))
 
-        elif combination == Combinations.DIAGONAL:
+        elif sequence == Sequences.DIAGONAL:
             for i in range(-1, 2, 2):
                 for j in range(-1, 2, 2):
                     steps.add((i, j))
 
-        elif combination == Combinations.LATERAL:
+        elif sequence == Sequences.LATERAL:
             for i in range(-1, 2, 2):
                 steps.add((0, i))
                 steps.add((i, 0))
 
-        elif combination == Combinations.ALL:
+        elif sequence == Sequences.ALL:
             for j in range(-1, 2):
                 for i in range(-1, 2):
                     if (i, j) != (0, 0):
@@ -56,4 +56,4 @@ class Combinations:
 
 if __name__ == "__main__":
     print(__file__)
-    c = Combinations()
+    c = Sequences()
