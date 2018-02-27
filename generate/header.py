@@ -1,6 +1,10 @@
 # header.py
+import random
 from PIL import Image, ImageDraw
 from bearlibterminal import terminal as term
+
+def randfloat():
+    return random.random() * 2 - 1
 
 def print_term(map, size):
     '''Prints a 2d map to the blt terminal'''
@@ -56,8 +60,7 @@ def lpath(b1, b2):
 
     else:
         # we check the slope value between two boxes to plan the path
-        x = max(x1, x2) - min(x1, x2)
-        y = max(y1, y2) - min(y1, y2)
+        x, y = max(x1, x2) - min(x1, x2), max(y1, y2) - min(y1, y2)
         slope = abs(y / x) <= 1.0
     
         # low slope -- go horizontal
@@ -124,6 +127,13 @@ def constructor(width, height=None, depth=None, value=None, args=None):
     and assigns each value in the array a value passed in as a parameter.
     The value can also take in arguments passed in as a parameter which 
     it uses to create the final value in the array
+
+    Examples:
+
+        constructor(width=10, height=10)
+
+        constructor(width=5, height=10, depth=3)
+
     '''
     def determine():
         '''Helper function for constructor that allows constructor to 
