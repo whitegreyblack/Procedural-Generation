@@ -1,6 +1,38 @@
 # header.py
+from PIL import Image, ImageDraw
+from bearlibterminal import terminal as term
+
+def print_term(map, size):
+    '''Prints a 2d map to the blt terminal'''
+    term.open()
+    s = 2 ** size + 1
+    term.set(f'window: title=DiamondSquare, size={s}x{s}, cellsize=8x8')
+
+    for y, row in enumerate(map):
+        for x, cell in enumerate(row):
+            term.puts(x, y, "[c={}]#[/c]".format(cell))
+
+    term.refresh()
+    term.read()
+
+def print_image(map, size, pid):    
+    '''Saves a png of a 2d map using PILLOW image printing'''
+    s = 2 ** size + 1
+    img = Image.new('RGB', (s, s))
+    ids = ImageDraw.Draw(img)
+
+    for y, row in enumerate(map):
+        for x, cell in enumerate(row):
+            # ids.point([x, y, x+1, y+1], cell)
+            ids.rectangle([x, y, x, y], cell)
+
+    img_name = f'{pid}.png'
+    img.save(f'../pics/{img_name}')    
 
 def lpath(b1, b2):
+    '''Returns an array with a list of points that create a L-shaped path on a
+    2d array.
+    '''
     # x1, y1 = center(b1)
     # x2, y2 = center(b2)
     x1, y1 = b1
@@ -10,25 +42,28 @@ def lpath(b1, b2):
     if x1 == x2 or y1 == y2:
         return line((x1, y1), (x2, y2))
 
-    # # check if points are within x bounds of each other == returns the midpoint vertical line
+    # # check if points are within x bounds of each other 
+    # # -- returns the midpoint vertical line
     # elif b2.x1 <= x1 < b2.x2 and b1.x1 <= x2 < b1.x2:
     #     x = (x1+x2)//2
     #     return line((x, y1), (x, y2))
 
-    # # check if points are within y bounds of each other -- returns the midpoint horizontal line
+    # # check if points are within y bounds of each other
+    # # -- returns the midpoint horizontal line
     # elif b2.y1 <= y1 < b2.x2 and b1.y1 <= y2 < b2.y2:
     #     y = (y1+y2)//2
     #     return line((x1, y), (x2, y))
 
     else:
         # we check the slope value between two boxes to plan the path
-        slope = abs((max(y1, y2) - min(y1, y2))/((max(x1, x2) - min(x1, x2)))) <= 1.0
+        x = max(x1, x2) - min(x1, x2)
+        y = max(y1, y2) - min(y1, y2)
+        slope = abs(y / x) <= 1.0
     
         # low slope -- go horizontal
         if slope:
             # width is short enough - make else zpath
-            return line((x1, y1), (x1, y2)) \
-                + line((x1, y2), (x2, y2))
+            return line((x1, y1), (x1, y2)) + line((x1, y2), (x2, y2))
 
         # high slope -- go vertical
         else:
