@@ -20,6 +20,7 @@ Box = namedtuple("Box", "x1 y1 x2 y2")
 class DSW:
     photos = 0
     LAND = "#008855"
+    TREE = "#004422"
     WATER = "#005577"
     MOUNT = "#BBBBBB" 
 
@@ -60,13 +61,14 @@ class DSW:
         '''
         
         box = Box(0, 0, self.width - 1, self.height - 1)
-
+        
         # initialize corners
         self.put(box.x1, box.y1, randfloat())
         self.put(box.x1, box.y2, randfloat())
         self.put(box.x2, box.y1, randfloat())
         self.put(box.x2, box.y2, randfloat())
 
+        # start recursive function
         self.diamondsquare(noise, delta, box)
 
     def diamondsquare(self, noise, delta, box):
@@ -74,7 +76,12 @@ class DSW:
         iteration onto the spaces within the parameter box in a diamond and 
         then square form. Noise is halved at each step of the iteration.
         '''
+        def diamond(x, y, p1, p2, p3):
+            self.put(x, y, ((p1 + p2 + p3) / 3) + randfloat() * random.uniform(-noise, noise))
+
         hx, hy = (box.x2 - box.x1) // 2, (box.y2 - box.y1) // 2
+        # print(hx, hy)
+        # exit()
 
         # b = [
         #     [(box.x1, box.y1), (box.x1 + hx, box.y1), (box.x2, box.y1)],
@@ -92,25 +99,28 @@ class DSW:
         p9 = self.at(box.x2, box.y1)
         p3 = self.at(box.x2, box.y2)
 
-        self.put(p5.x, p5.y, ((p1 + p3 + p7 + p9) / 4) + random.uniform(-noise, noise))
+        # sets the middle point (point 5) of the square using points 1, 3, 7, 9
+        self.put(p5.x, p5.y, ((p1 + p3 + p7 + p9) / 4) + randfloat() * random.uniform(-noise, noise))
         
         p5 = self.at(p5.x, p5.y)
-
-        x2, y2 = box.x1 + hx, box.y2	
+        
+        x8, y8 = box.x1 + hx, box.y1
         x4, y4 = box.x1, box.y1 + hy
         x6, y6 = box.x2, box.y1 + hy
-        x8, y8 = box.x1 + hx, box.y1
+        x2, y2 = box.x1 + hx, box.y2	
 
-        self.put(x2, y2, ((p1 + p3 + p5) / 3) + random.uniform(-noise, noise))
-        # self.put(x4, y4, ((p1 + p5 + p7) / 3) + self.random_range(-noise, noise))
-        self.put(x6, y6, ((p3 + p5 + p9) / 3) + random.uniform(-noise, noise))
-        # self.put(x8, y8, ((p5 + p7 + p9) / 3) + self.random_range(-noise, noise))
+        # TODO :- currently flawed  
+        diamond(x8, y8, p5, p7, p9)
+        diamond(x4, y4, p1, p5, p7)
+        diamond(x6, y6, p3, p5, p9)
+        diamond(x2, y2, p1, p3, p5)
+        # self.put(x2, y2, ((p1 + p3 + p5) / 3) + random.uniform(-noise, noise))
+        # self.put(x8, y8, ((p1 + p5 + p7) / 3) + random.uniform(-noise, noise))
+        # self.put(x6, y6, ((p3 + p5 + p9) / 3) + random.uniform(-noise, noise))
+        # self.put(x4, y4, ((p5 + p7 + p9) / 3) + random.uniform(-noise, noise))
 
-        # noise = noise * (2 ** -.75)
-        # noise /= 2 ** self.noise
-        noise /= 2 ** delta
+        noise = noise / (2 ** -.15)
 
-        # print(noise)
         if box.x2 - box.x1 > 2 or box.y2 - box.y1 > 2:
             # quadrant 4
             self.diamondsquare(noise, delta, Box(box.x1, 
@@ -118,13 +128,13 @@ class DSW:
                                                  box.x1 + hx, 
                                                  box.y1 + hy))
             
-            # quadrant 1
+            # quadrant 13
             self.diamondsquare(noise, delta, Box(box.x1 + hx, 
                                                  box.y1, 
                                                  box.x2, 
                                                  box.y1 + hy))
             
-            # quadrant 3
+            # quadrant 1
             self.diamondsquare(noise, delta, Box(box.x1, 
                                                  box.y1 + hy,
                                                  box.x1 + hx, 
@@ -139,33 +149,23 @@ class DSW:
     def prettify(self, array):
         for row in array:
             print(" ".join(map(lambda x: f"{x:6.2f}", row)))
-
+    
+    def copy(self):
+        return deepcopy(self)
+    
     def normalize(self):
-        def minimize():
-            if not hasattr(self, 'min'):
-                self.min = min(cell for row in self.map for cell in row)
-            return self.min
-            
-        def maximize():
-            if not hasattr(self, 'max'):
-                self.max = max(cell for row in self.map for cell in row)
-            return self.max
-
-        self.zvalues = []
-        nmin = minimize()
-        nmax = maximize()
+        self.zvalues = [cell for row in self.map for cell in row]
+        nmin = min(self.zvalues)
+        nmax = max(self.zvalues)
 
         for y, row in enumerate(self.map):
             for x, cell in enumerate(row):
                 self.map[y][x] = (cell - nmin) / (nmax - nmin)
-                self.zvalues.append(self.map[y][x])
-
+                self.zvalues[self.width * y + x] = self.map[y][x]
+        # self.zvalues = [cell for row in self.map for cell in row]
         # self.values = sort_values(self.values)
         # self.prettify(self.values)
         return self
-
-    def copy(self):
-        return deepcopy(self)
 
     def crosscheck(self, other):
         if self.colorized or other.colorized:
@@ -173,29 +173,31 @@ class DSW:
         return True
 
     def additive(self, other):
-        if not crosscheck(other):
+        if not self.crosscheck(other):
             raise ValueError("Cannot multiple non-float maps together")
-
         for y, row in enumerate(self.map):
             for x, cell in enumerate(row):
                 self.map[y][x] += other.map[y][x]
+        self.normalize()
         return self
 
     def multiply(self, other):
-        if self.colorized or other.colorized:
+        if not self.crosscheck(other):
             raise ValueError("Cannot multiple non-float maps together")
         for y, row in enumerate(self.map):
             for x, cell in enumerate(row):
                 self.map[y][x] *= other.map[y][x]
+        self.normalize()
         return self
 
     def replace(self, other):
-        if self.colorized or other.colorized:
+        if not self.crosscheck(other):
             raise ValueError("Cannot multiple non-float maps together")
         for y, row in enumerate(self.map):
             for x, cell in enumerate(row):
                 if other.map[y][x] > self.map[y][x]:
                     self.map[y][x] = other.map[y][x]
+        self.normalize()
         return self
 
     def colorize(self, color=False):
@@ -215,6 +217,8 @@ class DSW:
             
             # elif self.values[self.forests] <= x < self.values[self.mountains]:
             #     return "#000000"
+            elif x >= self.values[13][1]:
+                return self.TREE
             elif x >= self.values[10][1]:
                 return self.LAND
 
@@ -230,6 +234,9 @@ class DSW:
                 value = '0' + value
             return '#' + value * 3
 
+        if self.colorized:
+            raise ValueError("Map has already been converted to a color map")
+            
         self.colorized = True
 
         if color:
@@ -245,16 +252,17 @@ class DSW:
 
     def snapshot(self, color=False):
         array = self.map
-        if isinstance(self.map[0][0], float):
-            double = deepcopy(self)
-            array = double.colorize().map
+        if isinstance(array[0][0], float):
+            array = deepcopy(self).colorize(color=color).map
 
         img = Image.new('RGB', (self.width, self.height))
         ids = ImageDraw.Draw(img)
 
-        for y, row in enumerate(self.map):
+        for y, row in enumerate(array):
             for x, cell in enumerate(row):
-                ids.rectangle([x, y, x, y], cell)
+                # pass
+                ids.point([x, y, x, y], cell)
+                # ids.rectangle([x, y, x, y], cell)
         
         img.save(f"../pics/dsw_{DSW.photos}_{'rgb' if color else 'bw'}.png")
         DSW.photos += 1
@@ -327,12 +335,13 @@ class DSW:
                     new_map[j][i] = self.WATER if x == self.LAND else self.LAND
 
         self.clr = deepcopy(new_map)
+        return self
 
 if __name__ == "__main__":
-    # seed = random.randint(0, 99999)
-    # print(seed)
-    # random.seed(seed)
-    size = 9
+    seed = random.randint(0, 99999)
+    print(seed)
+    random.seed(seed)
+    size = 6
     # dsw = DSW(size, noise=.72, delta=.8)
     # dsw.prettify()
     # term_print(dsw.hex, 6)
@@ -343,24 +352,7 @@ if __name__ == "__main__":
     #
     # question: at this point should the DSW.map be normalized?
     # verdict: yes it should be normalized for easier user usage
-    m = DSW(size, noise=.55, delta=.65, seed=6846)
-    o = DSW(size, noise=.33, delta=.55, seed=6846)
-    # m.snapshot()
-    # o.snapshot()
-    m.multiply(o).normalize().smooth().colorize(True).snapshot()
-    # p = deepcopy(o)
-    # n = deepcopy(m)
-    # p.colorize().snapshot()
-    # m.smooth(2).colorize().snapshot()
-    # n.smooth(2).colorize(color=True).snapshot()
-
-    # clrmap = dsw.clr
-    # hexmap = dsw.hex
-    # dsw.snapshot(color=True)
-    # dsw.sort_array_max()
-    # dsw.remove_singles()
-    # dsw.snapshot(color=True)
-    # dsw.snapshot()
+    m = DSW(size, noise=.25, delta=.75).smooth(2).snapshot()
 
     # bins = 100
     # hist, bin_edges = numpy.histogram(dsw.map, bins=bins)
